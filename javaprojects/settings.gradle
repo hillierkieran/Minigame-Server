@@ -1,0 +1,10 @@
+pluginManagement {
+    repositories {
+        maven { url "https://hopper.une.edu.au/artifactory/gradle-plugins/" }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = "minigames"
+include "server"
+include "client"

@@ -1,0 +1,9 @@
+{
+    "name": "Doctacular codespace config",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "extensions": [
+      "vscjava.vscode-java-pack"
+    ]  
+  }

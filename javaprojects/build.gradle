@@ -1,0 +1,54 @@
+allprojects {
+
+    version = '0.1-SNAPSHOT'
+    ext {
+    }
+
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'jacoco'
+
+    repositories {
+        maven { url "https://hopper.une.edu.au/artifactory/libs-release/" }
+        maven { url "https://hopper.une.edu.au/artifactory/libs-snapshot/" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+        //maven { url "https://nexus.gluonhq.com/nexus/content/repositories/releases/" } // For avatar images
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        // Logging via Log4J
+        implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.18.0'
+        implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.18.0'
+
+        // Guava is a set of utilities, such as immutable collection libraries
+        implementation 'com.google.guava:guava:31.1-jre'        
+
+        // Jackson, for JSON parsing
+
+        // Unit testing with JUnit and Mockito
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+        testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '4.6.1'
+
+        // For Hashing Passwords
+        implementation "org.connectbot:jbcrypt:1.0.2"
+
+    }
+
+    test {
+        // Use junit platform for unit tests
+        useJUnitPlatform()
+    }
+    
+    jacoco {
+        toolVersion = "0.8.8"
+        reportsDir = file("$buildDir/customJacocoReportDir")
+    }
+
+}
+
