@@ -1,0 +1,8 @@
+plugins {
+    id 'application'
+}
+
+application {
+    // Define the main class for the application
+    mainClassName = 'minigames.client.Main'
+}
