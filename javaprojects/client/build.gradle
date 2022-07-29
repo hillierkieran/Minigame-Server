@@ -6,3 +6,8 @@ application {
     // Define the main class for the application
     mainClassName = 'minigames.client.Main'
 }
+
+dependencies {
+    implementation group: 'io.vertx', name:'vertx-core', version: '4.3.2'
+    implementation group: 'io.vertx', name:'vertx-web-client', version: '4.3.2'
+}
