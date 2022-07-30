@@ -7,6 +7,8 @@ application {
 }
 
 dependencies {
+    api project(":common")
+
     implementation group: 'io.vertx', name:'vertx-core', version: '4.3.2'
     implementation group: 'io.vertx', name:'vertx-web', version: '4.3.2'
     implementation group: 'org.apache.derby', name: 'derby', version: '10.16.1.1'

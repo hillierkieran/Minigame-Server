@@ -24,6 +24,19 @@ public class Main extends AbstractVerticle {
      */
     public static int port = 8080;
 
+    /** 
+     * The games that are available for each client. Static so that game servers and Main gan register them
+     * without needing to worry about whether the server has started yet.
+     */
+    public static final GameRegistry gameRegistry = new GameRegistry();
+
+    /**
+     * A place for groups to put code that registers their GameServer with the GameRegistry, etc.
+     */
+    private static void doWiring() {
+
+    }
+
     public static void main(String... args) {
         if (args.length > 0) {
             try {
@@ -37,6 +50,9 @@ public class Main extends AbstractVerticle {
                 logger.error("Port {} could not be parsed as a number", args[0]);
             }
         }
+
+        // Register games and services
+        doWiring();
 
         // Ask the Vertx launcher to launch our "Verticle".
         // This will cause Vert.x to start itself up, and then create a Main object and call our Main::start method
