@@ -27,10 +27,25 @@ public class MinigameNetworkClient {
 
     Vertx vertx;
     WebClient webClient;
+    MinigameNetworkClientWindow mainWindow;
+    Animator animator;
 
     public MinigameNetworkClient(Vertx vertx) {
         this.vertx = vertx;
         this.webClient = WebClient.create(vertx);
+
+        animator = new Animator();
+        vertx.setPeriodic(16, (id) -> animator.tick());
+
+        mainWindow = new MinigameNetworkClientWindow(this);
+        mainWindow.show();
+
+        mainWindow.showStarfieldMessage("Minigame Network");
+    }
+
+    /** Get a reference to the Vertx instance */
+    public Vertx getVerx() {
+        return this.vertx;
     }
 
     /** Sends a ping to the server and logs the response */
