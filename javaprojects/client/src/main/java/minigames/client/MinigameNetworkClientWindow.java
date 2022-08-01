@@ -4,13 +4,18 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.JButton;
 
 import minigames.client.backgrounds.Starfield;
+import minigames.rendering.GameMetadata;
+import minigames.rendering.GameServerDetails;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+
+import java.util.List;
 
 /**
  * The main window that appears.
@@ -102,6 +107,72 @@ public class MinigameNetworkClientWindow {
 
         center.add(layeredPane);
         pack();
+    }
+
+    /**
+     * Shows a list of GameServers to pick from
+     * 
+     * TODO: Prettify!
+     * @param servers
+     */
+    public void showGameServers(List<GameServerDetails> servers) {
+        clearAll();
+
+        JPanel panel = new JPanel();
+        List<JPanel> serverPanels = servers.stream().map((gsd) -> {
+            JPanel p = new JPanel();
+            JLabel l = new JLabel(String.format("<html><h1>%s</h1><p>%s</p></html>", gsd.name(), gsd.description()));
+            JButton newG = new JButton("Open games");
+
+            newG.addActionListener((evt) -> {
+                networkClient.getGameMetadata(gsd.name())
+                  .onSuccess((list) -> showGames(gsd.name(), list));
+            });
+
+            p.add(l);
+            p.add(newG);
+            return p;
+        }).toList();
+
+        for (JPanel serverPanel : serverPanels) {
+            panel.add(serverPanel);
+        }
+
+        center.add(panel);
+        pack();
+        parent.repaint();
+    }
+
+    /**
+     * Shows a list of games to pick from
+     * 
+     * TODO: Prettify!
+     * @param servers
+     */
+    public void showGames(String gameServer, List<GameMetadata> inProgress) {
+        clearAll();
+
+        JPanel panel = new JPanel();
+        List<JPanel> gamePanels = inProgress.stream().map((g) -> {
+            JPanel p = new JPanel();
+            JLabel l = new JLabel(String.format("<html><h1>%s</h1><p>%s</p></html>", g.name(), String.join(",", g.players())));
+            JButton join = new JButton("Join game");
+            join.setEnabled(g.joinable());
+            p.add(l);
+            p.add(join);
+            return p;
+        }).toList();
+
+        for (JPanel gamePanel : gamePanels) {
+            panel.add(gamePanel);
+        }
+
+        JButton newG = new JButton("New game");
+        panel.add(newG);
+
+        center.add(panel);
+        pack();
+        parent.repaint();
     }
 
 

@@ -68,7 +68,10 @@ public class Main extends AbstractVerticle {
         client.ping().flatMap((s) -> client.getGameServers()).map((list) -> {
             logger.info("Got servers {}", list);
             return list;
-        }).onFailure((ex) -> logger.error("Failed {}", ex));
+        }).map((l) -> {
+            client.getMainWindow().showGameServers(l);
+            return l;
+        });
     }
 
 

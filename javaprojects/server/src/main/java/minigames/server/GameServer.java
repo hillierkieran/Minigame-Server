@@ -1,6 +1,7 @@
 package minigames.server;
 
 import io.vertx.core.Future;
+import minigames.rendering.GameMetadata;
 import minigames.rendering.GameServerDetails;
 import minigames.rendering.RenderingPackage;
 import minigames.commands.CommandPackage;

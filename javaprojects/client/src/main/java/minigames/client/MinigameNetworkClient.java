@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.ext.web.client.WebClient;
+import minigames.rendering.GameMetadata;
 import minigames.rendering.GameServerDetails;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
@@ -82,20 +83,40 @@ public class MinigameNetworkClient {
             }).map((resp) -> resp.bodyAsString());        
     }
 
+    /** Get the list of GameServers that are supported for this client type */
     public Future<List<GameServerDetails>> getGameServers() {
         return webClient.get(port, host, "/gameServers/Swing")
             .send()
             .onSuccess((resp) -> {
                 logger.info(resp.bodyAsString());
             })
-            .onFailure((resp) -> {
-                logger.error("Failed: {} ", resp.getMessage());
-            }).map((resp) -> 
+            .map((resp) -> 
                 resp.bodyAsJsonArray()
                   .stream()
                   .map((j) -> ((JsonObject)j).mapTo(GameServerDetails.class))
                   .toList()
-            );
+            )
+            .onFailure((resp) -> {
+                logger.error("Failed: {} ", resp.getMessage());
+            });
+    }
+
+    /** Get the metadata for all games currently running for a particular gameServer */
+    public Future<List<GameMetadata>> getGameMetadata(String gameServer) {
+        return webClient.get(port, host, "/games/" + gameServer)
+            .send()
+            .onSuccess((resp) -> {
+                logger.info(resp.bodyAsString());
+            })
+            .map((resp) -> 
+                resp.bodyAsJsonArray()
+                  .stream()
+                  .map((j) -> ((JsonObject)j).mapTo(GameMetadata.class))
+                  .toList()
+            )
+            .onFailure((resp) -> {
+                logger.error("Failed: {} ", resp.getMessage());
+            });
     }
 
 

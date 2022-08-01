@@ -20,6 +20,11 @@ public class GameRegistry {
         gameServers.put(name, gs);
     }
 
+    /** Gets a GameServer from the registry */
+    public GameServer getGameServer(String name) {
+        return gameServers.get(name);
+    }
+
     /**
      * Called by the MinigameNetworkServer when a client is asking what games are available for it.
      * @param platform

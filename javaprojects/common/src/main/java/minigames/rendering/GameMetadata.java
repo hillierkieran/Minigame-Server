@@ -1,4 +1,4 @@
-package minigames.server;
+package minigames.rendering;
 
 /**
  * Basic data about a game in progress.
