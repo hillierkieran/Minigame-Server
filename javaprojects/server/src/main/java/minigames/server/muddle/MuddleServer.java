@@ -9,11 +9,24 @@ import minigames.server.ClientType;
 import minigames.server.GameServer;
 
 import java.util.HashMap;
+import java.util.Random;
 
 /**
  * An essentially empty placeholder game used in the writing of the starter code.
  */
 public class MuddleServer implements GameServer {
+
+    static final String chars = "abcdefghijklmopqrstuvwxyz";
+
+    /** A random name. We could do with something more memorable, like Docker has */
+    static String randomName() {
+        Random r = new Random();
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < 12; i++) {
+            sb.append(chars.charAt(r.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
 
     /** Holds the games in progress in memory (no db) */
     HashMap<String, MuddleGame> games = new HashMap<>();
@@ -36,15 +49,15 @@ public class MuddleServer implements GameServer {
     }
 
     @Override
-    public Future<RenderingPackage> newGame() {
-        // TODO Auto-generated method stub
-        return null;
+    public Future<RenderingPackage> newGame(String playerName) {
+        MuddleGame g = new MuddleGame(randomName());
+        return Future.succeededFuture(g.joinGame(playerName));
     }
 
     @Override
-    public Future<RenderingPackage> joinGame(String game, String player) {
-        // TODO Auto-generated method stub
-        return null;
+    public Future<RenderingPackage> joinGame(String game, String playerName) {
+        MuddleGame g = games.get(game);
+        return Future.succeededFuture(g.joinGame(playerName));
     }
 
     @Override

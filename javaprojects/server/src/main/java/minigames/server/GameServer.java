@@ -24,8 +24,11 @@ public interface GameServer {
      * Creates a new game and returns the rendering package for a client.
      * Returns a Future because in Vertx we don't want to block the event loop.
      * See the example for how to return a Future
+     * 
+     * The player name is passed as a parameter, but the GameServer will typically allocate
+     * the game a generated name.
      */
-    public Future<RenderingPackage> newGame();
+    public Future<RenderingPackage> newGame(String playerName);
 
     /** 
      * Joins a game in progress and returns the rendering package for a client.

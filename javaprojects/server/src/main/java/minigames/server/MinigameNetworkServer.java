@@ -5,6 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CorsHandler;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import minigames.rendering.GameMetadata;
+import minigames.rendering.RenderingPackage;
 
 
 public class MinigameNetworkServer {
@@ -32,7 +34,9 @@ public class MinigameNetworkServer {
 
     /** Starts the server on the given port */
     public void start(int port) {
-        router.route().handler(BodyHandler.create());
+        router.route()
+          .handler(CorsHandler.create())
+          .handler(BodyHandler.create());
 
         // A basic ping route to check if there is contact
         router.get("/ping").handler((ctx) -> {
@@ -57,6 +61,24 @@ public class MinigameNetworkServer {
 
           /** Vertx/Jackson should turn this into a JSON list, because we're just outputing a simple List<record> */
           return Future.succeededFuture(Arrays.asList(games));
+        });
+
+
+        // Starts a new game on the server
+        router.post("/newGame/:gameServer").respond((ctx) -> {
+          String serverName = ctx.pathParam("gameServer");
+          GameServer gs = Main.gameRegistry.getGameServer(serverName);
+
+          String playerName = ctx.body().asString();
+
+          /*
+           * executeBlocking moves this onto a background thread
+           */
+          Future<RenderingPackage> resp = vertx.executeBlocking((promise) -> gs.newGame(playerName).onSuccess((r) -> {
+            logger.info("package {}", r);
+            promise.complete(r);
+          }));
+          return resp;
         });
 
         server.requestHandler(router).listen(port, (http) -> {

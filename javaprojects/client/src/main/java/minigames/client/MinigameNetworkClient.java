@@ -2,15 +2,20 @@ package minigames.client;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.ext.web.client.WebClient;
 import minigames.rendering.GameMetadata;
 import minigames.rendering.GameServerDetails;
+import minigames.rendering.NativeCommands;
+import minigames.rendering.RenderingPackage;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,9 +48,12 @@ public class MinigameNetworkClient {
     MinigameNetworkClientWindow mainWindow;
     Animator animator;
 
+    Optional<GameClient> gameClient;
+
     public MinigameNetworkClient(Vertx vertx) {
         this.vertx = vertx;
         this.webClient = WebClient.create(vertx);
+        this.gameClient = Optional.empty();
 
         animator = new Animator();
         vertx.setPeriodic(16, (id) -> animator.tick());
@@ -117,6 +125,32 @@ public class MinigameNetworkClient {
             .onFailure((resp) -> {
                 logger.error("Failed: {} ", resp.getMessage());
             });
+    }
+
+
+    /** Get the metadata for all games currently running for a particular gameServer */
+    public Future<RenderingPackage> newGame(String gameServer, String playerName) {
+        return webClient.post(port, host, "/newGame/" + gameServer)
+            .sendBuffer(Buffer.buffer(playerName))
+            .onSuccess((resp) -> {
+                logger.info(resp.bodyAsString());
+            })
+            .map((resp) -> {
+                JsonObject rpj = resp.bodyAsJsonObject();
+                return RenderingPackage.fromJson(rpj);
+            })
+            .onFailure((resp) -> {
+                logger.error("Failed: {} ", resp.getMessage());
+            });
+    }
+
+
+    <T> Optional<T> tryParsing(JsonObject json, Class<T> clazz) {
+        try {
+            return Optional.of(json.mapTo(clazz));
+        } catch (Exception ex) {
+            return Optional.empty();
+        }
     }
 
 

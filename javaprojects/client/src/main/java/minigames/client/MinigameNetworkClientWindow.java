@@ -16,6 +16,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The main window that appears.
@@ -168,6 +169,10 @@ public class MinigameNetworkClientWindow {
         }
 
         JButton newG = new JButton("New game");
+        newG.addActionListener((evt) -> {
+            // FIXME: We've got a hardcoded player name here
+            networkClient.newGame(gameServer, "Algernon");
+        });
         panel.add(newG);
 
         center.add(panel);

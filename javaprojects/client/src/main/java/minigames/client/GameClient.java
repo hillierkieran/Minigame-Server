@@ -27,38 +27,26 @@ public interface GameClient {
 
     /**
      * Called when a new game has been started.
-     * @param name identifies this particular game in progress (e.g. "Joe's game against his sister")
-     * @param game essentially identifies the game server (e.g. Turn-Based Pong)
-     * @param players names of the players to display
      * @param renderingPackage rendering instructions
      */
-    public void newGame(String name, String game, String players[], RenderingPackage renderingPackage);
+    public void newGame(RenderingPackage renderingPackage);
 
     /** 
      * Called when a new game has been started 
-     * @param name identifies this particular game in progress (e.g. "Joe's game against his sister")
-     * @param game essentially identifies the game server (e.g. Turn-Based Pong)
-     * @param players names of the players to display
      * @param renderingPackage rendering instructions
      */
-    public void joinGame(String name, String game, String players[], RenderingPackage renderingPackage);
+    public void joinGame(RenderingPackage renderingPackage);
 
     /** 
      * Called when the game has a response to a request made from the client 
-     * @param name identifies this particular game in progress (e.g. "Joe's game against his sister")
-     * @param game essentially identifies the game server (e.g. Turn-Based Pong)
-     * @param players names of the players to display
      * @param renderingPackage rendering instructions
      */
-    public void serverReply(String name, String game, String players[], RenderingPackage renderingPackage);
+    public void serverReply(RenderingPackage renderingPackage);
 
     /** 
      * Usually this is at the end of the game 
-     * @param name identifies this particular game in progress (e.g. "Joe's game against his sister")
-     * @param game essentially identifies the game server (e.g. Turn-Based Pong)
-     * @param players names of the players to display
      * @param renderingPackage rendering instructions (e.g. for a victory screen)
      */
-    public void closeGame(String name, String game, String players[], RenderingPackage renderingPackage);
+    public void closeGame(RenderingPackage renderingPackage);
     
 }
