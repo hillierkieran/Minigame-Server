@@ -17,7 +17,17 @@ public class Main extends AbstractVerticle {
     /** A logger for logging output */
     private static final Logger logger = LogManager.getLogger(Main.class);
 
+    /** Where GameClients should register themselves in doWiring */
+    public static final ClientRegistry clientRegistry = new ClientRegistry();
+
     MinigameNetworkClient client;
+
+    /**
+     * A place for groups to put code that registers their GameClient with the ClientRegistry, etc.
+     */
+    private static void doWiring() {
+
+    }
 
     public static void main(String... args) {
         if (args.length > 0) {
@@ -37,6 +47,9 @@ public class Main extends AbstractVerticle {
                     logger.error("Too many : in host string");
             }
         }
+
+        // Register games and services
+        doWiring();
 
         // Ask the Vertx launcher to launch our "Verticle".
         // This will cause Vert.x to start itself up, and then create a Main object and call our Main::start method

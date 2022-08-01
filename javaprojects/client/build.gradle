@@ -8,6 +8,8 @@ application {
 }
 
 dependencies {
+    api project(":common")
+
     implementation group: 'io.vertx', name:'vertx-core', version: '4.3.2'
     implementation group: 'io.vertx', name:'vertx-web-client', version: '4.3.2'
 }

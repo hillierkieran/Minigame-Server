@@ -44,7 +44,7 @@ public class AnimatorTest {
         animator.requestTick(t2);
         animator.tick();
 
-        // t1 should be ticked once (for the first tick)
+        // t1 should be ticked once (i.e. on the first tick only)
         verify(t1, times(1)).tick(eq(animator), anyLong(), anyLong());
         // t2 should be ticked twice (i.e. on both ticks)
         verify(t2, times(2)).tick(eq(animator), anyLong(), anyLong());

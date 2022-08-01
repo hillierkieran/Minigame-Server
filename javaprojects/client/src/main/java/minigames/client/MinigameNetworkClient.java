@@ -9,7 +9,14 @@ import io.vertx.core.http.HttpMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
+/**
+ * The central cub of the client.
+ * 
+ * GameClients will be given a reference to this. 
+ * From this, they can get the main window, to set up their UI
+ * They can get the Animator, to register for ticks
+ * They gan get a reference to Vertx, for starting any other verticles they might want (though most won't)
+ */
 public class MinigameNetworkClient {
 
     /** A logger for logging output */
@@ -46,6 +53,16 @@ public class MinigameNetworkClient {
     /** Get a reference to the Vertx instance */
     public Vertx getVerx() {
         return this.vertx;
+    }
+
+    /** Get a reference to the main window */
+    public MinigameNetworkClientWindow getMainWindow() {
+        return this.mainWindow;
+    }
+
+    /** Get a reference to the animator */
+    public Animator getAnimator() {
+        return this.animator;
     }
 
     /** Sends a ping to the server and logs the response */
