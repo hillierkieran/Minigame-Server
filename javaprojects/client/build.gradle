@@ -12,4 +12,6 @@ dependencies {
 
     implementation group: 'io.vertx', name:'vertx-core', version: '4.3.2'
     implementation group: 'io.vertx', name:'vertx-web-client', version: '4.3.2'
+    // Enables Jackson Databind for serialisation of basic Java types
+    runtimeOnly group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.13.3"
 }

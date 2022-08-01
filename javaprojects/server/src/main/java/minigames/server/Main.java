@@ -2,6 +2,7 @@ package minigames.server;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import minigames.server.muddle.MuddleServer;
 import io.vertx.core.Launcher;
 
 import org.apache.logging.log4j.LogManager;
@@ -34,6 +35,8 @@ public class Main extends AbstractVerticle {
      * A place for groups to put code that registers their GameServer with the GameRegistry, etc.
      */
     private static void doWiring() {
+        // Register our first demo game
+        gameRegistry.registerGameServer("Muddle", new MuddleServer());
 
     }
 

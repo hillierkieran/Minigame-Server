@@ -1,0 +1,4 @@
+dependencies {
+    // Included here largely so we can use the JSON classes in our protocol
+    api group: 'io.vertx', name:'vertx-core', version: '4.3.2'
+}

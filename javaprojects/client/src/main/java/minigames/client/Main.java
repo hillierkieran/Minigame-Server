@@ -65,7 +65,10 @@ public class Main extends AbstractVerticle {
     public void start(Promise<Void> promise) {
         logger.info("Our Verticle is being started by Vert.x");
         client = new MinigameNetworkClient(vertx);
-        client.ping();
+        client.ping().flatMap((s) -> client.getGameServers()).map((list) -> {
+            logger.info("Got servers {}", list);
+            return list;
+        }).onFailure((ex) -> logger.error("Failed {}", ex));
     }
 
 

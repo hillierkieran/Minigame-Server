@@ -1,10 +1,15 @@
 package minigames.client;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.ext.web.client.WebClient;
+import minigames.rendering.GameServerDetails;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -66,15 +71,31 @@ public class MinigameNetworkClient {
     }
 
     /** Sends a ping to the server and logs the response */
-    public void ping() {
-        webClient.get(port, host, "/ping")
+    public Future<String> ping() {
+        return webClient.get(port, host, "/ping")
             .send()
             .onSuccess((resp) -> {
                 logger.info(resp.bodyAsString());
             })
             .onFailure((resp) -> {
                 logger.error("Failed: {} ", resp.getMessage());
-            });        
+            }).map((resp) -> resp.bodyAsString());        
+    }
+
+    public Future<List<GameServerDetails>> getGameServers() {
+        return webClient.get(port, host, "/gameServers/Swing")
+            .send()
+            .onSuccess((resp) -> {
+                logger.info(resp.bodyAsString());
+            })
+            .onFailure((resp) -> {
+                logger.error("Failed: {} ", resp.getMessage());
+            }).map((resp) -> 
+                resp.bodyAsJsonArray()
+                  .stream()
+                  .map((j) -> ((JsonObject)j).mapTo(GameServerDetails.class))
+                  .toList()
+            );
     }
 
 

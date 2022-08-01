@@ -1,6 +1,7 @@
 package minigames.server;
 
 import io.vertx.core.Future;
+import minigames.rendering.GameServerDetails;
 import minigames.rendering.RenderingPackage;
 import minigames.commands.CommandPackage;
 
@@ -8,10 +9,10 @@ import minigames.commands.CommandPackage;
  * Common interface for minigame servers to implement.
  */
 public interface GameServer {
-
-    /** Return basic metadata to show to the client */
-    public GameMetadata getMetadata();
     
+    /** Unique and human-readable (we don't have that many) */
+    public GameServerDetails getDetails();
+
     /** What kinds of client can this game be played in? */
     public ClientType[] getSupportedClients();
 
