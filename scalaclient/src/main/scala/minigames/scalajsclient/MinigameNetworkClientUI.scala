@@ -2,6 +2,8 @@ package minigames.scalajsclient
 
 import org.scalajs.dom 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
+
 
 /*
    My code for the main UI uses a rendering library I wrote. But you don't have to.
@@ -55,6 +57,58 @@ object MainWindow extends VHtmlComponent() {
         <.div(^.cls := "south flowLayout", south),
       )
     )
+
+    /** Clears all the panel slots */
+    def clear():Unit = {
+        for panel <- Seq(north, south, east, west, center) do panel.clear()
+    }
+
+    /** Shows a short message over a retro style star field */
+    def showStarfieldMessage(message:String):Unit = {
+        clear()
+
+        val s = backgrounds.Starfield()
+        center.add(s.canvas)
+
+        val l = dom.document.createElement("label")
+        l.innerText = message
+        l.setAttribute("style", "position: absolute; top: 318px; font-family: monospace; font-size: 36px; color: cyan;")
+        center.add(l)
+
+        s.start()
+    }
+
+    /** shows a list of available game servers */
+    def showGameServers(servers:Seq[GameServerDetails]):Unit = {
+        clear()
+
+        // Sorry, this is lazy of me but I'm using my little kit for this one
+        center.add(<.div(
+            for gsd <- servers yield <.div(
+                <.h4(gsd.name),
+                <.p(gsd.description),
+                <.div(
+                    <.button("Open games", ^.onClick --> {
+                        for games <- MinigameNetworkClient.getGameMetadata(gsd.name) do
+                            showGames(gsd.name, games)
+                    })
+                )
+            )
+        ))
+    }
+
+        /** shows a list of available game servers */
+    def showGames(gameServer:String, games:Seq[GameMetadata]):Unit = {
+        clear()
+
+        // Sorry, this is lazy of me but I'm using my little kit for this one
+        center.add(<.div(
+            for game <- games yield <.div(
+                <.h4(game.name),
+                <.p(game.players.mkString(", "))            
+            )
+        ))
+    }
 
 }
 
@@ -114,6 +168,7 @@ class FlowPanel(cssClass:String = "flowLayout") extends VHtmlNode {
         controlNode.makeItSo(base(children.toSeq*))
     }
 
+    /** Clears all the child elements from this panel */
     def clear():Unit = {
         children.clear();
         controlNode.makeItSo(base(children.toSeq*))
