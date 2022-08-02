@@ -3,17 +3,22 @@ package minigames.server.muddle;
 import java.util.*;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.JsonArray;
+import minigames.commands.CommandPackage;
 import minigames.rendering.*;
+import minigames.rendering.NativeCommands.LoadClient;
 
 /**
  * Represents an actual Muddle game in progress
  */
 public class MuddleGame {
 
+    static int WIDTH = 2;
+    static int HEIGHT = 2;
+
     record MuddlePlayer(
-        int x,
-        int y
+        String name,
+        int x, int y,
+        List<String> inventory
     ) {    
     }
 
@@ -24,11 +29,14 @@ public class MuddleGame {
         this.name = name;
     }
 
-
     String[][] rooms = new String[][] {
         {
-            "A maze of twisting passages, all alike",
-            "Ok, they weren't so alike after all"
+            "You are in a maze of twisting passages, all alike",
+            "You are in a maze of twisting passages that weren't so alike after all"
+        },
+        {
+            "You are standing in an open field west of a white house, with a boarded front door. There is a small mailbox here.",
+            "You wake up. The room is very gently spinning around your head. Or at least it would be if you could see it which you can't. It is pitch black."
         }
     };
 
@@ -44,6 +52,41 @@ public class MuddleGame {
         return new GameMetadata("Muddle", name, getPlayerNames(), true);
     }
 
+    /** Describes the state of a player */
+    private String describeState(MuddlePlayer p) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(String.format("[%d,%d] \n\n", p.x, p.y));
+        sb.append(rooms[p.x()][p.y()]);
+
+        return sb.toString();
+    }
+
+    private String directions(int x, int y) {
+        String d = "";
+        if (x > 0) d += "W";
+        if (y > 0) d += "N";
+        if (x < WIDTH - 1) d += "E";
+        if (x < HEIGHT - 1) d += "S";
+
+        return d;
+    }
+
+
+    public RenderingPackage runCommands(CommandPackage cp) {
+        MuddlePlayer p = players.get(cp.player());
+
+        // FIXME: Need to actually run the commands!
+
+        ArrayList<JsonObject> renderingCommands = new ArrayList<>();
+        renderingCommands.add(new JsonObject().put("command", "clearText"));
+        renderingCommands.add(new JsonObject().put("command", "appendText").put("text", describeState(p)));
+        renderingCommands.add(new JsonObject().put("command", "setDirections").put("directions", directions(p.x(), p.y())));
+
+        return new RenderingPackage(this.gameMetadata(), renderingCommands);
+    }
+
+    /** Joins this game */
     public RenderingPackage joinGame(String playerName) {
         if (players.containsKey(playerName)) {
             return new RenderingPackage(
@@ -53,14 +96,16 @@ public class MuddleGame {
                 }).map((r) -> r.toJson()).toList()
             );
         } else {
-            players.put(playerName, new MuddlePlayer(0, 0));
+            MuddlePlayer p = new MuddlePlayer(playerName, 0, 0, List.of());
+            players.put(playerName, p);
 
-            ArrayList<RenderingCommand> commands = new ArrayList<>();
-            commands.add(new NativeCommands.LoadClient("MuddleText", "Muddle", name, playerName));
+            ArrayList<JsonObject> renderingCommands = new ArrayList<>();
+            renderingCommands.add(new LoadClient("MuddleText", "Muddle", name, playerName).toJson());
+            renderingCommands.add(new JsonObject().put("command", "clearText"));
+            renderingCommands.add(new JsonObject().put("command", "appendText").put("text", describeState(p)));
+            renderingCommands.add(new JsonObject().put("command", "setDirections").put("directions", directions(p.x(), p.y())));
 
-            // FIXME: Add commands that render the content!
-
-            return new RenderingPackage(gameMetadata(), commands.stream().map((r) -> r.toJson()).toList());
+            return new RenderingPackage(gameMetadata(), renderingCommands);
         }
 
     }

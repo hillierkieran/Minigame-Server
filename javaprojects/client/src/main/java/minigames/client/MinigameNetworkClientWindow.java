@@ -39,6 +39,8 @@ public class MinigameNetworkClientWindow {
     JPanel west;
     JPanel east;    
 
+    JLabel messageLabel;
+
     public MinigameNetworkClientWindow(MinigameNetworkClient networkClient) {
         this.networkClient = networkClient;
 
@@ -62,6 +64,11 @@ public class MinigameNetworkClientWindow {
         frame.add(parent);
     }
 
+    /** Removes all components from the south panel */
+    public void clearSouth() {
+        south.removeAll();
+    }
+
     /** Clears all sections of the UI  */
     public void clearAll() {
         for (JPanel p : new JPanel[] { north, south, east, west, center }) {
@@ -69,13 +76,35 @@ public class MinigameNetworkClientWindow {
         }
     }
 
-    public void showGameChooser() {
-        clearAll();
+    /** Adds a component to the north part of the main window */
+    public void addNorth(java.awt.Component c) {
+        north.add(c);
+    }
+
+    /** Adds a component to the south part of the main window */
+    public void addSouth(java.awt.Component c) {
+        south.add(c);
+    }
+
+    /** Adds a component to the east part of the main window */
+    public void addEast(java.awt.Component c) {
+        east.add(c);
+    }
+
+    /** Adds a component to the west part of the main window */
+    public void addWest(java.awt.Component c) {
+        west.add(c);
+    }
+
+    /** Adds a component to the center of the main window */
+    public void addCenter(java.awt.Component c) {
+        center.add(c);
     }
 
     /** "Packs" the frame, setting its size to match the preferred layout sizes of its component */
     public void pack() {
         frame.pack();
+        parent.repaint();
     }
 
     /** Makes the main window visible */
@@ -181,14 +210,4 @@ public class MinigameNetworkClientWindow {
     }
 
 
-    /**
-     * A simple UI for getting the list of games
-     */
-    class GameChooser {
-
-        JPanel panel = new JPanel();
-
-
-
-    }
 }

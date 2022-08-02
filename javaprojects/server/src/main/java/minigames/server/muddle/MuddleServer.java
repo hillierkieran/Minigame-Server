@@ -12,7 +12,8 @@ import java.util.HashMap;
 import java.util.Random;
 
 /**
- * An essentially empty placeholder game used in the writing of the starter code.
+ * Our MuddleServer holds MuddleGames. 
+ * When it receives a CommandPackage, it finds the MuddleGame and calls it.
  */
 public class MuddleServer implements GameServer {
 
@@ -51,6 +52,7 @@ public class MuddleServer implements GameServer {
     @Override
     public Future<RenderingPackage> newGame(String playerName) {
         MuddleGame g = new MuddleGame(randomName());
+        games.put(g.name, g);
         return Future.succeededFuture(g.joinGame(playerName));
     }
 
@@ -61,9 +63,9 @@ public class MuddleServer implements GameServer {
     }
 
     @Override
-    public Future<RenderingPackage> callGame(String game, String player, CommandPackage commands) {
-        // TODO Auto-generated method stub
-        return null;
+    public Future<RenderingPackage> callGame(CommandPackage cp) {
+        MuddleGame g = games.get(cp.gameId());
+        return Future.succeededFuture(g.runCommands(cp));
     }
     
 }

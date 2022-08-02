@@ -2,6 +2,7 @@ package minigames.client;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import minigames.client.muddletext.MuddleText;
 import io.vertx.core.Launcher;
 
 import org.apache.logging.log4j.LogManager;
@@ -26,6 +27,7 @@ public class Main extends AbstractVerticle {
      * A place for groups to put code that registers their GameClient with the ClientRegistry, etc.
      */
     private static void doWiring() {
+        clientRegistry.registerGameClient("MuddleText", new MuddleText());
 
     }
 
@@ -65,13 +67,8 @@ public class Main extends AbstractVerticle {
     public void start(Promise<Void> promise) {
         logger.info("Our Verticle is being started by Vert.x");
         client = new MinigameNetworkClient(vertx);
-        client.ping().flatMap((s) -> client.getGameServers()).map((list) -> {
-            logger.info("Got servers {}", list);
-            return list;
-        }).map((l) -> {
-            client.getMainWindow().showGameServers(l);
-            return l;
-        });
+
+        client.runMainMenuSequence();
     }
 
 

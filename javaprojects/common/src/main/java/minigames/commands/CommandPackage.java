@@ -16,4 +16,12 @@ public record CommandPackage(
     List<JsonObject> commands
 ) {
     
+    public static CommandPackage fromJson(JsonObject json) {
+        return new CommandPackage(
+            json.getString("gameServer"),
+            json.getString("gameId"),
+            json.getString("player"),
+            json.getJsonArray("commands").stream().map((o) -> (JsonObject)o).toList()
+        );
+      }
 }

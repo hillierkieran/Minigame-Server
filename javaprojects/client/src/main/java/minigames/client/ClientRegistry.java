@@ -2,8 +2,6 @@ package minigames.client;
 
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.Arrays;
 
 /**
  * Holds information on which games are available and can be served up to clients.
@@ -19,6 +17,10 @@ public class ClientRegistry {
      */
     public void registerGameClient(String name, GameClient gc) {
         gameClients.put(name, gc);
+    }
+
+    public GameClient getGameClient(String name) {
+        return gameClients.get(name);
     }
 
 }

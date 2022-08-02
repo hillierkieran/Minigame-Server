@@ -3,6 +3,7 @@ package minigames.server;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
@@ -13,6 +14,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import minigames.commands.CommandPackage;
 import minigames.rendering.GameMetadata;
 import minigames.rendering.RenderingPackage;
 
@@ -75,6 +77,41 @@ public class MinigameNetworkServer {
            * executeBlocking moves this onto a background thread
            */
           Future<RenderingPackage> resp = vertx.executeBlocking((promise) -> gs.newGame(playerName).onSuccess((r) -> {
+            logger.info("package {}", r);
+            promise.complete(r);
+          }));
+          return resp;
+        });
+
+        // Starts a new game on the server
+        router.post("/joinGame/:gameServer/:game").respond((ctx) -> {
+          String serverName = ctx.pathParam("gameServer");
+          String gameName = ctx.pathParam("game");
+          GameServer gs = Main.gameRegistry.getGameServer(serverName);
+
+          String playerName = ctx.body().asString();
+
+          /*
+            * executeBlocking moves this onto a background thread
+            */
+          Future<RenderingPackage> resp = vertx.executeBlocking((promise) -> gs.joinGame(gameName, playerName).onSuccess((r) -> {
+            logger.info("package {}", r);
+            promise.complete(r);
+          }));
+          return resp;
+        });
+        
+        // Sends a command package to a game on the server
+        router.post("/command").respond((ctx) -> {
+          JsonObject data = ctx.body().asJsonObject();
+          CommandPackage cp = CommandPackage.fromJson(data);
+
+          GameServer gs = Main.gameRegistry.getGameServer(cp.gameServer());
+
+          /*
+            * executeBlocking moves this onto a background thread
+            */
+          Future<RenderingPackage> resp = vertx.executeBlocking((promise) -> gs.callGame(cp).onSuccess((r) -> {
             logger.info("package {}", r);
             promise.complete(r);
           }));

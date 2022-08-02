@@ -40,6 +40,6 @@ public interface GameServer {
     /** 
      * Effectively called by the client when it wants to make a move. 
      */
-    public Future<RenderingPackage> callGame(String game, String player, CommandPackage commands);
+    public Future<RenderingPackage> callGame(CommandPackage commands);
 
 }

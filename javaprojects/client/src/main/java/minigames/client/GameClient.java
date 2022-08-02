@@ -1,5 +1,7 @@
 package minigames.client;
 
+import io.vertx.core.json.JsonObject;
+import minigames.rendering.GameMetadata;
 import minigames.rendering.RenderingPackage;
 
 
@@ -20,33 +22,20 @@ import minigames.rendering.RenderingPackage;
 public interface GameClient {
 
     /**
-     * Called at start-up, to ensure that GameClients can access the hub for other services
-     * @param mnClient
+     * 
+     * @param renderingPackage
      */
-    public void setMinigameNetworkClient(MinigameNetworkClient mnClient);
+    public void load(MinigameNetworkClient mnClient, GameMetadata game, String player);
 
     /**
-     * Called when a new game has been started.
-     * @param renderingPackage rendering instructions
+     * Called to execute a command that has been sent by the server
+     * @param renderingPackage
      */
-    public void newGame(RenderingPackage renderingPackage);
-
-    /** 
-     * Called when a new game has been started 
-     * @param renderingPackage rendering instructions
-     */
-    public void joinGame(RenderingPackage renderingPackage);
-
-    /** 
-     * Called when the game has a response to a request made from the client 
-     * @param renderingPackage rendering instructions
-     */
-    public void serverReply(RenderingPackage renderingPackage);
+    public void execute(GameMetadata game, JsonObject command);
 
     /** 
      * Usually this is at the end of the game 
-     * @param renderingPackage rendering instructions (e.g. for a victory screen)
      */
-    public void closeGame(RenderingPackage renderingPackage);
+    public void closeGame();
     
 }
