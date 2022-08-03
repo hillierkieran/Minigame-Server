@@ -1,5 +1,7 @@
 package minigames.scalajsclient
 
+import scalajs.js
+
 /** 
  * Trait implemented by GameClients in Scalaland.
  * 
@@ -9,5 +11,9 @@ package minigames.scalajsclient
 trait GameClient {
 
     def load(metadata:GameMetadata, playerName:String):Unit
+
+    def closeGame():Unit
+
+    def execute(metadata:GameMetadata, command:js.Dynamic):Unit
 
 }

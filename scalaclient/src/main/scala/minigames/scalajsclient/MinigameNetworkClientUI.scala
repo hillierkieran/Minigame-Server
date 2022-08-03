@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
    You can just create HTML elements programmatically and add them. This is just a fast way
    for me to program the main client.
  */
-import com.wbillingsley.veautiful.html.{VHtmlNode, VHtmlComponent, StyleSuite, Styling, <, ^}
+import com.wbillingsley.veautiful.html.{VHtmlNode, VHtmlComponent, StyleSuite, Styling, <, ^, EventMethods}
 
 
 /**
@@ -83,7 +83,7 @@ object MainWindow extends VHtmlComponent() {
         clear()
 
         // Sorry, this is lazy of me but I'm using my little kit for this one
-        center.add(<.div(
+        center.add(<.div(^.attr("style") := "height: 600px; width: 800px; overflow-y: auto;",
             for gsd <- servers yield <.div(
                 <.h4(gsd.name),
                 <.p(gsd.description),
@@ -101,17 +101,26 @@ object MainWindow extends VHtmlComponent() {
     def showGames(gameServer:String, games:Seq[GameMetadata]):Unit = {
         clear()
 
+        north.add(NameWidget)
+
         // Sorry, this is lazy of me but I'm using my little kit for this one
-        center.add(<.div(
+        center.add(<.div(^.attr("style") := "height: 600px; width: 800px; overflow-y: auto;",
             for game <- games yield <.div(
                 <.h4(game.name),
-                <.p(game.players.mkString(", ")),
-                <.div(
-                    <.button(^.attr("disabled") ?= (if game.joinable then None else Some("disabled")),
-                      ^.onClick --> MinigameNetworkClient.joinGame(gameServer, game.name, "Algernon"),
+                <.div(game.players.mkString(", ")),
+                <.p(
+                    <.button(^.cls := "btn btn-secondary",
+                      ^.attr("disabled") ?= (if game.joinable then None else Some("disabled")),
+                      ^.onClick --> MinigameNetworkClient.joinGame(gameServer, game.name, NameWidget.name),
                       "Join"
                     )     
                 )       
+            ),
+            <.p(
+                <.button(^.cls := "btn btn-secondary",
+                    ^.onClick --> MinigameNetworkClient.newGame(gameServer, NameWidget.name),
+                    "New game"
+                ) 
             )
         ))
     }
@@ -186,27 +195,11 @@ class FlowPanel(cssClass:String = "flowLayout") extends VHtmlNode {
 
 
 
+object NameWidget extends VHtmlComponent {
+    var name:String = "Algernon"
 
-
-/** Not currently used. */
-class RawNodeParent() extends VHtmlNode {
-
-    val controlNode = <.div(^.cls := "flowLayout")
-
-    export controlNode.attach
-    export controlNode.detach
-    export controlNode.domNode
-
-    /** removes all child nodes from this element */
-    def clear():Unit = {
-        for el <- controlNode.domNode do 
-            while el.firstChild != null do
-                el.removeChild(el.firstChild)
-    }
-
-    def add(el:dom.html.Element):Unit = {
-        for cn <- controlNode.domNode do
-            cn.appendChild(el)
-    }
-
+    def render = <.div(
+        <.span("Your name: "),
+        <.input(^.prop("value") := name, ^.on("input") ==> { (evt) => for n <- evt.inputValue do {name = n; rerender() } })
+    )
 }

@@ -12,7 +12,7 @@ public class NativeCommands {
     public record LoadClient(String clientName, String gameServer, String game, String player) implements RenderingCommand {
         public JsonObject toJson() {
             return new JsonObject()
-                .put("command", "client.loadClient")
+                .put("nativeCommand", "client.loadClient")
                 .put("clientName", clientName)
                 .put("gameServer", gameServer)
                 .put("game", game)
@@ -21,7 +21,7 @@ public class NativeCommands {
 
         /** Attempts to parse a json object, returning a filled Optional if it found a LoadClient command, and an empty one otherwise */
         public static Optional<LoadClient> tryParsing(JsonObject json) {
-            return switch (json.getString("command")) {
+            return switch (json.getString("nativeCommand")) {
                 case "client.loadClient" -> Optional.of(new LoadClient(
                     json.getString("clientName"), 
                     json.getString("gameServer"), 
@@ -37,13 +37,13 @@ public class NativeCommands {
     public record ShowMenuError(String message) implements RenderingCommand {
         public JsonObject toJson() {
             return new JsonObject()
-                .put("command", "client.showMenuError")
+                .put("nativeCommand", "client.showMenuError")
                 .put("message", message);
         }
 
         /** Attempts to parse a json object, returning a filled Optional if it found a ShowMenuError command, and an empty one otherwise */
         public static Optional<ShowMenuError> tryParsing(JsonObject json) {
-            return switch (json.getString("command")) {
+            return switch (json.getString("nativeCommand")) {
                 case "client.showMenuError" -> Optional.of(new ShowMenuError(
                     json.getString("message")
                 ));
