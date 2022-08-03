@@ -2,6 +2,7 @@ package minigames.server;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -37,8 +38,14 @@ public class MinigameNetworkServer {
     /** Starts the server on the given port */
     public void start(int port) {
         router.route()
-          .handler(CorsHandler.create())
+          .handler(CorsHandler.create().allowedMethod(HttpMethod.POST))
           .handler(BodyHandler.create());
+
+        /* Force CORS to respond that everything is ok
+        router.options().handler((ctx) -> {
+          ctx.response().putHeader("Acces-Control-Allow-Origin", "*");
+          ctx.response().end("");
+        });*/
 
         // A basic ping route to check if there is contact
         router.get("/ping").handler((ctx) -> {

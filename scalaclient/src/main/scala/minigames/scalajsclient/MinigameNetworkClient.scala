@@ -6,6 +6,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scalajs.js
 import js.Thenable.Implicits._
 import js.JSConverters._
+import org.scalajs.dom.RequestInit
+import org.scalajs.dom.HttpMethod
 
 /**
  * A facade type for our GameServerDetails JSON structure.
@@ -34,6 +36,18 @@ trait GameMetadata extends js.Object {
     val joinable:Boolean = js.native
 }
 
+/**
+ * Rendering packages we receive.
+ */
+@js.native
+trait RenderingPackage extends js.Object {
+    // Our game metadata
+    val metadata:GameMetadata = js.native
+
+    // js.Dynamic means the compiler will just let you access fields from the object and assume they're there
+    val renderingCommands:js.Array[js.Dynamic] = js.native
+}
+
 object MinigameNetworkClient {
 
     // Get the MGN server location from the search string
@@ -46,7 +60,7 @@ object MinigameNetworkClient {
     /** GET to route /ping */
     def ping():Future[String] = {
         for 
-            response <- dom.fetch(serverRoot + "/ping") 
+            response <- dom.fetch(serverRoot + "ping") 
             text <- response.text()
         yield text
     }
@@ -54,7 +68,7 @@ object MinigameNetworkClient {
     /** GET to /gameServers/Scalajs */
     def getGameServers():Future[Seq[GameServerDetails]] = {
         for
-            response <- dom.fetch(serverRoot + "/gameServers/Scalajs") 
+            response <- dom.fetch(serverRoot + "gameServers/Scalajs") 
             json <- response.json()
         yield 
             json.asInstanceOf[js.Array[GameServerDetails]].toSeq            
@@ -63,10 +77,23 @@ object MinigameNetworkClient {
     /** GET to /games/:game */
     def getGameMetadata(gameServer:String):Future[Seq[GameMetadata]] = {
         for
-            response <- dom.fetch(serverRoot + "/games/" + gameServer) 
+            response <- dom.fetch(serverRoot + "games/" + gameServer) 
             json <- response.json()
         yield 
             json.asInstanceOf[js.Array[GameMetadata]].toSeq            
+    }
+
+
+    /** Joins a game in progess */
+    def joinGame(gameServer:String, game:String, playerName:String):Future[RenderingPackage] = {
+        for 
+            response <- dom.fetch(serverRoot + s"joinGame/$gameServer/$game", new RequestInit {
+                method = HttpMethod.POST
+                body = playerName
+            })
+            json <- response.json()
+        yield 
+            json.asInstanceOf[RenderingPackage]
     }
 
     /** A similar main menu sequence as the Swing client has */

@@ -97,7 +97,7 @@ object MainWindow extends VHtmlComponent() {
         ))
     }
 
-        /** shows a list of available game servers */
+    /** shows a list of available game servers */
     def showGames(gameServer:String, games:Seq[GameMetadata]):Unit = {
         clear()
 
@@ -105,7 +105,13 @@ object MainWindow extends VHtmlComponent() {
         center.add(<.div(
             for game <- games yield <.div(
                 <.h4(game.name),
-                <.p(game.players.mkString(", "))            
+                <.p(game.players.mkString(", ")),
+                <.div(
+                    <.button(^.attr("disabled") ?= (if game.joinable then None else Some("disabled")),
+                      ^.onClick --> MinigameNetworkClient.joinGame(gameServer, game.name, "Algernon"),
+                      "Join"
+                    )     
+                )       
             )
         ))
     }

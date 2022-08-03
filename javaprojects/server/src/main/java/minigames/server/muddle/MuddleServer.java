@@ -45,7 +45,7 @@ public class MuddleServer implements GameServer {
     @Override
     public GameMetadata[] getGamesInProgress() {
         return games.keySet().stream().map((name) -> {
-            return new GameMetadata(name, "Muddle", games.get(name).getPlayerNames(), true);
+            return new GameMetadata("Muddle", name, games.get(name).getPlayerNames(), true);
         }).toArray(GameMetadata[]::new);
     }
 
