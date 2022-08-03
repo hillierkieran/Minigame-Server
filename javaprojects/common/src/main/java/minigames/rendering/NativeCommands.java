@@ -21,6 +21,8 @@ public class NativeCommands {
 
         /** Attempts to parse a json object, returning a filled Optional if it found a LoadClient command, and an empty one otherwise */
         public static Optional<LoadClient> tryParsing(JsonObject json) {
+            if (json.getString("nativeCommand") == null) return Optional.empty();
+            
             return switch (json.getString("nativeCommand")) {
                 case "client.loadClient" -> Optional.of(new LoadClient(
                     json.getString("clientName"), 
@@ -43,6 +45,8 @@ public class NativeCommands {
 
         /** Attempts to parse a json object, returning a filled Optional if it found a ShowMenuError command, and an empty one otherwise */
         public static Optional<ShowMenuError> tryParsing(JsonObject json) {
+            if (json.getString("nativeCommand") == null) return Optional.empty();
+
             return switch (json.getString("nativeCommand")) {
                 case "client.showMenuError" -> Optional.of(new ShowMenuError(
                     json.getString("message")
@@ -55,12 +59,14 @@ public class NativeCommands {
     /** Quits to the main menu */
     public record QuitToMenu() implements RenderingCommand {
         public JsonObject toJson() {
-            return new JsonObject().put("command", "client.quitToMGNMenu");
+            return new JsonObject().put("nativeCommand", "client.quitToMGNMenu");
         }
 
         /** Attempts to parse a json object, returning a filled Optional if it found a QuitToMenu command, and an empty one otherwise */
         public static Optional<QuitToMenu> tryParsing(JsonObject json) {
-            return switch (json.getString("command")) {
+            if (json.getString("nativeCommand") == null) return Optional.empty();
+
+            return switch (json.getString("nativeCommand")) {
                 case "client.quitToMGNMenu" -> Optional.of(new QuitToMenu());
                 default -> Optional.empty();
             };

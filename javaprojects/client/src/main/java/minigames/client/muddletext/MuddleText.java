@@ -97,6 +97,7 @@ public class MuddleText implements GameClient {
     public void load(MinigameNetworkClient mnClient, GameMetadata game, String player) {
         this.mnClient = mnClient;
         this.gm = game;
+        this.player = player;
 
         // Add our components to the north, south, east, west, or centre of the main window's BorderLayout
         mnClient.getMainWindow().addCenter(textArea);

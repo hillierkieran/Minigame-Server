@@ -4,6 +4,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 
 import minigames.client.backgrounds.Starfield;
@@ -41,6 +44,9 @@ public class MinigameNetworkClientWindow {
 
     JLabel messageLabel;
 
+    // We hang on to this one for registering in servers
+    JTextField nameField;
+
     public MinigameNetworkClientWindow(MinigameNetworkClient networkClient) {
         this.networkClient = networkClient;
 
@@ -62,6 +68,9 @@ public class MinigameNetworkClientWindow {
         parent.add(west, BorderLayout.WEST);
 
         frame.add(parent);
+
+        nameField = new JTextField(20);
+        nameField.setText("Algernon");
     }
 
     /** Removes all components from the south panel */
@@ -182,11 +191,22 @@ public class MinigameNetworkClientWindow {
     public void showGames(String gameServer, List<GameMetadata> inProgress) {
         clearAll();
 
+        JPanel namePanel = new JPanel();
+        JLabel nameLabel = new JLabel("Your name");
+        namePanel.add(nameLabel);
+        namePanel.add(nameField);
+        north.add(namePanel);
+
+
         JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         List<JPanel> gamePanels = inProgress.stream().map((g) -> {
             JPanel p = new JPanel();
             JLabel l = new JLabel(String.format("<html><h1>%s</h1><p>%s</p></html>", g.name(), String.join(",", g.players())));
             JButton join = new JButton("Join game");
+            join.addActionListener((evt) -> {
+                networkClient.joinGame(gameServer, g.name(), nameField.getText());
+            });
             join.setEnabled(g.joinable());
             p.add(l);
             p.add(join);
@@ -200,11 +220,14 @@ public class MinigameNetworkClientWindow {
         JButton newG = new JButton("New game");
         newG.addActionListener((evt) -> {
             // FIXME: We've got a hardcoded player name here
-            networkClient.newGame(gameServer, "Algernon");
+            networkClient.newGame(gameServer, nameField.getText());
         });
         panel.add(newG);
 
-        center.add(panel);
+        JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setPreferredSize(new Dimension(800, 600));
+
+        center.add(scrollPane);
         pack();
         parent.repaint();
     }

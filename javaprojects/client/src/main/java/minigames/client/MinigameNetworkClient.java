@@ -219,6 +219,7 @@ public class MinigameNetworkClient {
             mainWindow.clearSouth();
             JLabel l = new JLabel(sme.message());
             mainWindow.addSouth(l);
+            mainWindow.pack();
         }
     }
 

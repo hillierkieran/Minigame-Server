@@ -2,6 +2,9 @@ package minigames.server.muddle;
 
 import java.util.*;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import io.vertx.core.json.JsonObject;
 import minigames.commands.CommandPackage;
 import minigames.rendering.*;
@@ -11,6 +14,9 @@ import minigames.rendering.NativeCommands.LoadClient;
  * Represents an actual Muddle game in progress
  */
 public class MuddleGame {
+
+    /** A logger for logging output */
+    private static final Logger logger = LogManager.getLogger(MuddleGame.class);
 
     static int WIDTH = 2;
     static int HEIGHT = 2;
@@ -73,7 +79,8 @@ public class MuddleGame {
     }
 
 
-    public RenderingPackage runCommands(CommandPackage cp) {
+    public RenderingPackage runCommands(CommandPackage cp) {   
+        logger.info("Received command package {}", cp);     
         MuddlePlayer p = players.get(cp.player());
 
         // FIXME: Need to actually run the commands!
