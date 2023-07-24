@@ -27,9 +27,9 @@ RUN bash -c 'cs install sbt'
 RUN bash -c 'npm install -g http-server'
 
 # Precache sbt version as part of the image.
-ARG SBT_VERSION=1.7.0
-ARG SCALA_VERSION=3.1.3
-ARG SCALAJS_VERSION=1.10.1
+ARG SBT_VERSION=1.9.2
+ARG SCALA_VERSION=3.3.0
+ARG SCALAJS_VERSION=1.13.2
 RUN mkdir -p /sbtprecacheproj/project && \
   cd /sbtprecacheproj && \
   echo sbt.version=${SBT_VERSION} > project/build.properties && \

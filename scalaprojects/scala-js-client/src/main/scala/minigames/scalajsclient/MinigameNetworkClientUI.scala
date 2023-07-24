@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
    You can just create HTML elements programmatically and add them. This is just a fast way
    for me to program the main client.
  */
-import com.wbillingsley.veautiful.html.{VHtmlNode, VHtmlComponent, StyleSuite, Styling, <, ^, EventMethods}
+import com.wbillingsley.veautiful.html.*
 
 
 /**
@@ -134,35 +134,18 @@ object MainWindow extends VHtmlComponent() {
 given styleSuite:StyleSuite = StyleSuite()
 
 
-/** 
- * An adapter that lets us add raw dom elements to a Veautiful element
- * 
- * Used internally by FlowPanel, but left exposed so you can use it if you
- * really want.
- */
-case class DirectNode(el: dom.Element) extends VHtmlNode {
-    var domNode:Option[dom.Element] = None
-
-    def attach(): dom.Element = {
-        domNode = Some(el)
-        el
-    }
-
-    def detach(): Unit = { domNode = None }
-}
-
 /**  
  * A component that will attempt to mimic a JPanel with a FlowLayout.
  * 
  * It has two methods: add and clear
  * add can take a dom Element, or it can also take a VNode (something from my library)
  */
-class FlowPanel(cssClass:String = "flowLayout") extends VHtmlNode {
+class FlowPanel(cssClass:String = "flowLayout") extends VHtmlElement {
 
-    val children = mutable.Buffer.empty[<.ElementChild[dom.html.Div]]
+    val children = mutable.Buffer.empty[ElementChild[dom.html.Div]]
 
     // What an empty one looks like
-    def base = <.div(^.cls := cssClass)
+    def base = <.div(^.cls := cssClass).build()
 
     // The DiffNode we're controlling
     val controlNode = base
@@ -172,14 +155,14 @@ class FlowPanel(cssClass:String = "flowLayout") extends VHtmlNode {
     export controlNode.domNode
 
     /** Adds a VNode to this panel */
-    def add(vnode: VHtmlNode):Unit = {
+    def add(vnode: VHtmlContent):Unit = {
         children.append(vnode)
         controlNode.makeItSo(base(children.toSeq*))
     }
 
     /** Adds a dom element to this panel */
     def add(el: dom.Element):Unit = {
-        children.append(DirectNode(el))
+        children.append(DirectElement(el))
         controlNode.makeItSo(base(children.toSeq*))
     }
 
@@ -195,7 +178,7 @@ class FlowPanel(cssClass:String = "flowLayout") extends VHtmlNode {
 
 
 
-object NameWidget extends VHtmlComponent {
+object NameWidget extends DHtmlComponent {
     var name:String = "Algernon"
 
     def render = <.div(
