@@ -3,7 +3,7 @@ plugins {
 }
 
 application {
-    mainClassName = 'minigames.server.Main'
+    mainClass = 'minigames.server.Main'
 }
 
 dependencies {
