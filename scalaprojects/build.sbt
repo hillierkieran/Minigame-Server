@@ -46,6 +46,15 @@ lazy val scalafxClient = project.in(file("scalafx-client"))
     libraryDependencies ++= Seq(
       "org.scalafx" %% "scalafx" % "20.0.0-R31", 
 
+      // Vertx, for calling to the server
+      "io.vertx" % "vertx-core" % "4.3.2",
+      "io.vertx" % "vertx-web-client" % "4.3.2",
+
+      // Log4J
+      "org.apache.logging.log4j" % "log4j-api" % "2.18.0",
+      "org.apache.logging.log4j" % "log4j-core" % "2.18.0",
+
+      // MUnit for testing
       "org.scalameta" %%% "munit" % "0.7.29" % Test
     ), 
 

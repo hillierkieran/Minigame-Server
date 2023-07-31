@@ -1,9 +1,8 @@
-package minigames.client;
+package minigames.scalafxclient
 
-import io.vertx.core.json.JsonObject;
-import minigames.rendering.GameMetadata;
-import minigames.rendering.RenderingPackage;
+import minigames.rendering.*
 
+import io.vertx.core.json.JsonObject
 
 /**
  * A GameClient knows how to interpret rendering commands for one or more games.
@@ -19,21 +18,12 @@ import minigames.rendering.RenderingPackage;
  * Most GameClients will implement Tickable, so they can be ticked by the Animator, but it is not
  * required. (e.g. a text adventure game might not.)
  */
-public interface GameClient {
+trait GameClient {
 
-    /**
-     * Called to load a game
-     */
-    public void load(MinigameNetworkClient mnClient, GameMetadata game, String player);
+    def load(client:MinigameNetworkClient, game:GameMetadata, player:String):Unit
 
-    /**
-     * Called to execute a command that has been sent by the server
-     */
-    public void execute(GameMetadata game, JsonObject command);
+    def closeGame():Unit
 
-    /** 
-     * Usually this is at the end of the game 
-     */
-    public void closeGame();
-    
+    def execute(metadata:GameMetadata, command:JsonObject):Unit
+
 }
