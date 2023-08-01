@@ -50,6 +50,9 @@ lazy val scalafxClient = project.in(file("scalafx-client"))
       "io.vertx" % "vertx-core" % "4.3.2",
       "io.vertx" % "vertx-web-client" % "4.3.2",
 
+      // For deserialising and serialising case classes
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.1",
+
       // Log4J
       "org.apache.logging.log4j" % "log4j-api" % "2.18.0",
       "org.apache.logging.log4j" % "log4j-core" % "2.18.0",

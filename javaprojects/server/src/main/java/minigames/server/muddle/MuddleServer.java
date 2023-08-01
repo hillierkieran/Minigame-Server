@@ -39,7 +39,7 @@ public class MuddleServer implements GameServer {
 
     @Override
     public ClientType[] getSupportedClients() {
-        return new ClientType[] { ClientType.Swing, ClientType.Scalajs };
+        return new ClientType[] { ClientType.Swing, ClientType.Scalajs, ClientType.Scalafx };
     }
 
     @Override

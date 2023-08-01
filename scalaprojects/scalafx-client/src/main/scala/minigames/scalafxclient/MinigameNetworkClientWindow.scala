@@ -1,8 +1,8 @@
 package minigames.scalafxclient
 
 import scalafx.scene.layout.*
-import javafx.scene.control.TextField
-import javafx.scene.Node
+import scalafx.scene.control.TextField
+import scalafx.scene.Node
 import scalafx.scene.Scene
 import minigames.backgrounds.Starfield
 import scalafx.scene.text.Text
@@ -10,6 +10,13 @@ import scalafx.geometry.VPos
 import scalafx.scene.text.TextAlignment
 import scalafx.scene.text.Font
 import scalafx.scene.paint.Color
+
+import minigames.rendering.*
+import minigames.commands.*
+import scalafx.scene.control.Label
+import scalafx.scene.control.Button
+import scalafx.application.Platform
+import scalafx.geometry.Pos
 
 /**
  * The main window that appears.
@@ -27,12 +34,12 @@ class MinigameNetworkClientWindow(val mgnClient: MinigameNetworkClient) {
     val west = HBox()
     val center = HBox()
 
-    val all = Seq(center, north, east, south, west)
+    def all = Seq(center, north, east, south, west)
 
     val borderPane = BorderPane(center, north, east, south, west)
 
     // We hang on to this one for registering in servers
-    val nameField = TextField("Algernon")
+    val nameField = new TextField { text = "Algernon" }
 
     def clearNorth():Unit = north.children.clear()
     def clearSouth():Unit = south.children.clear()
@@ -55,7 +62,8 @@ class MinigameNetworkClientWindow(val mgnClient: MinigameNetworkClient) {
         }
         App.stage.show()
 
-    def showStarfieldMessage(message:String):Unit = {
+    /** Shows a twinkling background with a label over it */
+    def showStarfieldMessage(message:String):Unit = Platform.runLater {
         clearAll()
         addCenter(new StackPane {
             children = Seq(
@@ -72,6 +80,67 @@ class MinigameNetworkClientWindow(val mgnClient: MinigameNetworkClient) {
             )
         })
         
+    }
+
+    /** Shows the list of game servers available for this client */
+    def showGameServers(servers:Seq[GameServerDetails]):Unit = Platform.runLater {
+        clearAll()
+        addCenter(new VBox {
+            alignment = Pos.CENTER
+            children = 
+                for s <- servers yield
+                    new VBox {
+                        children = Seq(
+                            new Label {
+                                text = s.name
+                            },
+                            new Label {
+                                text = s.description
+                            },
+                            new Button {
+                                text = "Open games"
+                                onAction = (_) => {
+                                    mgnClient.getGameMetadata(s.name).onSuccess(showGames)
+                                }
+                            }
+                        )
+                    }
+        })
+
+    }
+
+    def showGames(games:Seq[GameMetadata]) = Platform.runLater {
+        clearAll()
+        addNorth(new HBox {
+            children = Seq(
+                new Label { text = "Your name " },
+                nameField                
+            )
+        })
+        addCenter(new VBox {
+            alignment = Pos.CENTER
+            children = 
+                (for g <- games if g.joinable yield
+                    new VBox {
+                        children = Seq(
+                            new Label {
+                                text = g.name
+                            },
+                            new Label {
+                                text = g.players.mkString(", ")
+                            },
+                            new Button {
+                                text = "Join game"
+                                onAction = (_) => {
+                                    // TODO
+                                }
+                            }
+                        )
+                    }
+                ) :+ new VBox {
+                    children = Seq()
+                }
+        })
     }
 
 
