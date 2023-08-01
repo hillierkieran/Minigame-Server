@@ -4,6 +4,12 @@ import scalafx.scene.layout.*
 import javafx.scene.control.TextField
 import javafx.scene.Node
 import scalafx.scene.Scene
+import minigames.backgrounds.Starfield
+import scalafx.scene.text.Text
+import scalafx.geometry.VPos
+import scalafx.scene.text.TextAlignment
+import scalafx.scene.text.Font
+import scalafx.scene.paint.Color
 
 /**
  * The main window that appears.
@@ -48,6 +54,25 @@ class MinigameNetworkClientWindow(val mgnClient: MinigameNetworkClient) {
             content = borderPane
         }
         App.stage.show()
+
+    def showStarfieldMessage(message:String):Unit = {
+        clearAll()
+        addCenter(new StackPane {
+            children = Seq(
+                Starfield().canvas,
+                new Text {
+                    x = 400
+                    y = 300
+                    textOrigin = VPos.CENTER
+                    textAlignment = TextAlignment.CENTER
+                    text = message
+                    font = Font.apply("Monospaced", 36)
+                    fill = Color.Cyan
+                }
+            )
+        })
+        
+    }
 
 
 }

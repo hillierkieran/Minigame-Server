@@ -18,6 +18,7 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
     val logger = LogManager.getLogger(MinigameNetworkClient.getClass)
 
     val vertx:Vertx = Vertx.vertx()
+    vertx.setPeriodic(16, (id) => Animator.tick());
 
     /** The web client makes server requests for us */
     val webClient = WebClient.create(vertx)
@@ -30,6 +31,7 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
 
     def runMainMenuSequence():Unit = {
         mainWindow.show()
+        mainWindow.showStarfieldMessage("Minigame Network")
         ping()
 
     }
