@@ -100,7 +100,7 @@ class MinigameNetworkClientWindow(val mgnClient: MinigameNetworkClient) {
                             new Button {
                                 text = "Open games"
                                 onAction = (_) => {
-                                    mgnClient.getGameMetadata(s.name).onSuccess(showGames)
+                                    mgnClient.getGameMetadata(s.name).onSuccess((l) => showGames(s.name, l))
                                 }
                             }
                         )
@@ -109,7 +109,7 @@ class MinigameNetworkClientWindow(val mgnClient: MinigameNetworkClient) {
 
     }
 
-    def showGames(games:Seq[GameMetadata]) = Platform.runLater {
+    def showGames(gameServer:String, games:Seq[GameMetadata]) = Platform.runLater {
         clearAll()
         addNorth(new HBox {
             children = Seq(
@@ -132,13 +132,20 @@ class MinigameNetworkClientWindow(val mgnClient: MinigameNetworkClient) {
                             new Button {
                                 text = "Join game"
                                 onAction = (_) => {
-                                    // TODO
+                                    mgnClient.joinGame(gameServer, g.name, nameField.getText())
                                 }
                             }
                         )
                     }
                 ) :+ new VBox {
-                    children = Seq()
+                    children = Seq(
+                        new Button {
+                            text = "New game"
+                            onAction = (_) => {
+                                mgnClient.newGame(gameServer, nameField.getText())
+                            }
+                        }
+                    )
                 }
         })
     }

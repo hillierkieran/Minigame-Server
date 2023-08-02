@@ -9,6 +9,12 @@ extension (json:JsonObject) {
             case Some(v) => Success(v)
             case None => Failure(NoSuchFieldException(s"Json had no field $name"))
         }
+
+    def readObject(name:String):Try[JsonObject] = 
+        Option(json.getJsonObject(name)) match {
+            case Some(v) => Success(v)
+            case None => Failure(NoSuchFieldException(s"Json had no field $name"))
+        }
 }
 
 enum NativeCommand:
@@ -16,6 +22,7 @@ enum NativeCommand:
     case ShowMenuError(message:String)
     case QuitToMenu
 
+object NativeCommand:
     /** Tries to parse this as a native command. Note the type signature is a little different than the Java version */
     def tryParsing(json:JsonObject):Option[Try[NativeCommand]] = 
         Option(json.getString("nativeCommand")) match {

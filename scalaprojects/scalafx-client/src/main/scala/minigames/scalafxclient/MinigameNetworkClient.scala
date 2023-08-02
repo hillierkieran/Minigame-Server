@@ -12,6 +12,10 @@ import com.fasterxml.jackson.core.`type`.TypeReference
 import minigames.rendering.*
 import io.vertx.core.buffer.Buffer
 import com.fasterxml.jackson.module.scala.ClassTagExtensions
+import scalafx.scene.control.Label
+import scalafx.application.Platform
+import scala.util.Success
+import scala.util.Failure
 
 /** Mapper for Jackson Databind for Scala case classes */
 val mapper = JsonMapper.builder().addModule(DefaultScalaModule).build() :: ClassTagExtensions
@@ -113,5 +117,57 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
             // TODO: Run the rendering package
         )
         .onFailure((err) => logger.error(err))
+
+    /** Runs a "native command" from a rendering package */
+    private def executeNative(metadata:GameMetadata, command:NativeCommand):Unit = 
+        command match {
+            case NativeCommand.QuitToMenu => 
+                for gc <- gameClient do gc.closeGame()
+                gameClient = None
+                runMainMenuSequence()
+
+            case NativeCommand.ShowMenuError(message) => 
+                if gameClient.isEmpty then
+                    Platform.runLater {
+                        mainWindow.clearSouth()
+                        mainWindow.addSouth(new Label { text = message })
+                    }
+                else logger.error("Tried to show a menu error when a game was loaded")
+
+            case NativeCommand.LoadClient(clientName, gameServer, game, player) => 
+                logger.info(s"Loading client $command")
+                getGameClient(clientName) match {
+                    case Some(gc) => 
+                        this.gameClient = Some(gc)
+                        Platform.runLater { 
+                            mainWindow.clearAll() 
+                            gc.load(this, metadata, player)
+                        }
+
+                    case None => logger.error("No such game client")
+                }
+
+        }
+
+    /** Runs a rendering package -- a set of instructions for the client sent by the server */
+    private def runRenderingPackage(rp:RenderingPackage) = {
+        logger.info("Running rendering package")
+        for json <- rp.renderingCommands do 
+            // First, see if it was a "native command"
+            NativeCommand.tryParsing(json) match {
+                case Some(Success(nativeCommand)) =>
+                    executeNative(rp.metadata, nativeCommand)
+                case Some(Failure(err)) => 
+                    logger.error("Failed to parse native command", err)
+
+                case None => 
+                    // This is a game command
+                    for gc <- gameClient do gc.execute(rp.metadata, json)
+
+            }
+
+
+
+    }
 
 }
