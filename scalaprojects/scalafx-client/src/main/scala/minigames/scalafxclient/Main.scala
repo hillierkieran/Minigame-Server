@@ -22,16 +22,17 @@ import io.vertx.core.Vertx
 object App extends JFXApp3 { 
 
     /** host and port numbers for the server */
-    lazy val (host:String, port:Int) = this.parameters.unnamed match {
-        case Seq(hostAndPort:String, _) => 
-            if hostAndPort.contains(":") then
-                val Array(h, p) = hostAndPort.split(":")
-                (h, p.toInt)
-            else 
-                (hostAndPort, 8080)
-        case _ => 
-            ("localhost", 8080)
-    }
+    lazy val (host:String, port:Int) = 
+        this.parameters.unnamed.toList match {
+            case hostAndPort :: _ => 
+                if hostAndPort.contains(":") then
+                    val Array(h, p) = hostAndPort.split(":")
+                    (h, p.toInt)
+                else 
+                    (hostAndPort, 8080)
+            case _ => 
+                ("localhost", 8080)
+        }
 
     /** A network client started as soon as we call it */
     lazy val mgnClient = MinigameNetworkClient(host, port)

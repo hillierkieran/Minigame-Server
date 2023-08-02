@@ -1,4 +1,4 @@
-package minigames.commands
+package minigames.rendering
 
 import minigames.rendering.GameMetadata
 import io.vertx.core.json.JsonObject

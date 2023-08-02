@@ -9,7 +9,7 @@ import io.vertx.core.json.JsonObject
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.core.`type`.TypeReference
-import minigames.rendering.GameMetadata
+import minigames.rendering.*
 import io.vertx.core.buffer.Buffer
 import com.fasterxml.jackson.module.scala.ClassTagExtensions
 
@@ -28,6 +28,8 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
 
     /** A logger for logging output */
     val logger = LogManager.getLogger(MinigameNetworkClient.getClass)
+
+    logger.info(s"Starting network client, connecting to $host:$port")
 
     val vertx:Vertx = Vertx.vertx()
     vertx.setPeriodic(16, (id) => Animator.tick());
