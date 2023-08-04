@@ -18,9 +18,9 @@ public record RenderingPackage(
 
   public static RenderingPackage fromJson(JsonObject json) {
     return new RenderingPackage(
-        json.getJsonObject("metadata").mapTo(classOf[GameMetadata]),
-        json.getJsonArray("renderingCommands").stream().map((o) => (JsonObject)o).toList()
-    )
+        json.getJsonObject("metadata").mapTo(GameMetadata.class),
+        json.getJsonArray("renderingCommands").stream().map((o) -> (JsonObject)o).toList()
+    );
   }
 
 }
