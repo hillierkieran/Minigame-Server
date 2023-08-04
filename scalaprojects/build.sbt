@@ -61,7 +61,9 @@ lazy val scalafxClient = project.in(file("scalafx-client"))
       "org.scalameta" %%% "munit" % "0.7.29" % Test
     ), 
 
-    Compile / run / fork := true
+    Compile / run / fork := true,
+
+    testFrameworks += new TestFramework("munit.Framework")
   )
 
 
