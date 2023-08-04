@@ -2,6 +2,7 @@ package minigames.commands
 
 import io.vertx.core.json.JsonObject
 import scala.jdk.CollectionConverters.*
+import io.vertx.core.json.JsonArray
 
 case class CommandPackage(
     gameServer:String,
@@ -9,6 +10,14 @@ case class CommandPackage(
     player:String,
     commands:Seq[JsonObject]
 ) {
+
+    def toJson = JsonObject()
+        .put("gameServer", gameServer)
+        .put("gameId", gameId)
+        .put("player", player)
+        .put("commands", {
+            commands.foldLeft(JsonArray()) { _.add(_) }
+        })
 
 }
 

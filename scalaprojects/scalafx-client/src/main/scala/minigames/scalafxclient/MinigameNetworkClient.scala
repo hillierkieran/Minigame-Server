@@ -6,19 +6,12 @@ import org.apache.logging.log4j.LogManager
 import minigames.commands.*
 import io.vertx.core.json.JsonObject
 
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.fasterxml.jackson.core.`type`.TypeReference
 import minigames.rendering.*
 import io.vertx.core.buffer.Buffer
-import com.fasterxml.jackson.module.scala.ClassTagExtensions
 import scalafx.scene.control.Label
 import scalafx.application.Platform
 import scala.util.Success
 import scala.util.Failure
-
-/** Mapper for Jackson Databind for Scala case classes */
-val mapper = JsonMapper.builder().addModule(DefaultScalaModule).build() :: ClassTagExtensions
 
 /**
  * The central cub of the client.
@@ -74,7 +67,7 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
         .map(
             // Jackson's deserialisation works for some built-in types and case classes
             // It's a curious syntax, but it works. 
-            (resp) => mapper.readValue(resp.bodyAsString(), new TypeReference[Seq[GameServerDetails]] {})
+            (resp) => GameServerDetails.fromJsonArray(resp.bodyAsJsonArray())
         )
         .onFailure((err) => logger.error(err))
 
@@ -84,7 +77,7 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
         .send()
         .onSuccess((resp) => logger.info(resp.bodyAsString()))
         .map(
-            (resp) => mapper.readValue(resp.bodyAsString(), new TypeReference[Seq[GameMetadata]] {})
+            (resp) => GameMetadata.fromJsonArray(resp.bodyAsJsonArray())
         )
         .onFailure((err) => logger.error(err))
 
@@ -94,9 +87,10 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
         .sendBuffer(Buffer.buffer(playerName))
         .onSuccess((resp) => logger.info(resp.bodyAsString()))
         .map(
-            (resp) => mapper.readValue(resp.bodyAsString(), new TypeReference[RenderingPackage] {})
+            (resp) => RenderingPackage.fromJson(resp.bodyAsJsonObject())
         )
         .onFailure((err) => logger.error(err))
+        .onSuccess((rp) => runRenderingPackage(rp))
 
     /** Joins a game */
     def joinGame(gameServer:String, game:String, playerName:String) = webClient
@@ -104,19 +98,21 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
         .sendBuffer(Buffer.buffer(playerName))
         .onSuccess((resp) => logger.info(resp.bodyAsString()))
         .map(
-            (resp) => mapper.readValue(resp.bodyAsString(), new TypeReference[RenderingPackage] {})
+            (resp) => RenderingPackage.fromJson(resp.bodyAsJsonObject())
         )
         .onFailure((err) => logger.error(err))
+        .onSuccess((rp) => runRenderingPackage(rp))
+
 
     def send(cp:CommandPackage) = webClient
         .post(port, host, "/command")
-        .sendJson(mapper.writer.forType(new TypeReference[CommandPackage] {}).writeValueAsString(cp))
+        .sendJson(cp.toJson)
         .onSuccess((resp) => logger.info(resp.bodyAsString()))
         .map(
-            (resp) => mapper.readValue(resp.bodyAsString(), new TypeReference[RenderingPackage] {})
-            // TODO: Run the rendering package
+            (resp) => RenderingPackage.fromJson(resp.bodyAsJsonObject())
         )
         .onFailure((err) => logger.error(err))
+        .onSuccess((rp) => runRenderingPackage(rp))
 
     /** Runs a "native command" from a rendering package */
     private def executeNative(metadata:GameMetadata, command:NativeCommand):Unit = 
