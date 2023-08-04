@@ -50,5 +50,11 @@ subprojects {
         reportsDirectory = file("$buildDir/customJacocoReportDir")
     }
 
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
 }
 
