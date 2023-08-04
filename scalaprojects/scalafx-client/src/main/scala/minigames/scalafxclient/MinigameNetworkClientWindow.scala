@@ -79,6 +79,7 @@ class MinigameNetworkClientWindow(val mgnClient: MinigameNetworkClient) {
                 }
             )
         })
+        App.stage.sizeToScene()
         
     }
 

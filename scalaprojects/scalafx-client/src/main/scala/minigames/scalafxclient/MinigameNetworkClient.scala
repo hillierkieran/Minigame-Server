@@ -104,15 +104,20 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
         .onSuccess((rp) => runRenderingPackage(rp))
 
 
-    def send(cp:CommandPackage) = webClient
-        .post(port, host, "/command")
-        .sendJson(cp.toJson)
-        .onSuccess((resp) => logger.info(resp.bodyAsString()))
-        .map(
-            (resp) => RenderingPackage.fromJson(resp.bodyAsJsonObject())
-        )
-        .onFailure((err) => logger.error(err))
-        .onSuccess((rp) => runRenderingPackage(rp))
+    def send(cp:CommandPackage) = {
+        val json = cp.toJson
+        logger.info("Sending {}", json)
+
+        webClient
+            .post(port, host, "/command")
+            .sendJson(json)
+            .onSuccess((resp) => logger.info(resp.bodyAsString()))
+            .map(
+                (resp) => RenderingPackage.fromJson(resp.bodyAsJsonObject())
+            )
+            .onFailure((err) => logger.error(err))
+            .onSuccess((rp) => runRenderingPackage(rp))
+    }
 
     /** Runs a "native command" from a rendering package */
     private def executeNative(metadata:GameMetadata, command:NativeCommand):Unit = 
@@ -138,6 +143,7 @@ class MinigameNetworkClient(val host:String = "localhost", val port:Int = 8080) 
                         Platform.runLater { 
                             mainWindow.clearAll() 
                             gc.load(this, metadata, player)
+                            App.stage.sizeToScene()
                         }
 
                     case None => logger.error("No such game client")
