@@ -20,4 +20,7 @@ public interface HighScoreStorage {
 
     // Retrieve all scores across all games
     List<ScoreRecord> retrieveAllScores();
+
+    // Retrieve a game's metadata
+    GameMetadata getGameMetadata(String gameName);
 }

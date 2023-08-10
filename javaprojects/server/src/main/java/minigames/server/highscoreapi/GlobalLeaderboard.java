@@ -69,11 +69,15 @@ public class GlobalLeaderboard {
      */
     private Map<String, Integer> computeRankingsForGame(List<ScoreRecord> scores) {
 
+        // Get game metadata
+        String gameName = scores.get(0).getGameName();
+        GameMetadata gameMetadata = storage.getGameMetadata(gameName);
+
         // Sort scores from lowest to highest
         scores.sort(Comparator.comparingInt(ScoreRecord::getScore));
 
         // Reverse unless lower scores are better
-        if (!scores.get(0).isLowerBetter()) {
+        if (!gameMetadata.isLowerBetter()) {
             Collections.reverse(scores);
         }
 
