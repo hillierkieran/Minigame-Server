@@ -2,6 +2,7 @@ package minigames.server;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import minigames.server.highscore.*;
 import minigames.server.muddle.MuddleServer;
 import io.vertx.core.Launcher;
 
@@ -31,6 +32,13 @@ public class Main extends AbstractVerticle {
      */
     public static final GameRegistry gameRegistry = new GameRegistry();
 
+    /** 
+     * HighScoreAPI static reference (INCOMPLETE don't try to use yet)
+     * Provides access to high-score management and retrieval functionalities 
+     * for all game components via `Main.highScoreAPI`.
+     */
+    public static HighScoreAPI highScoreAPI;
+
     /**
      * A place for groups to put code that registers their GameServer with the GameRegistry, etc.
      */
@@ -38,6 +46,11 @@ public class Main extends AbstractVerticle {
         // Register our first demo game
         gameRegistry.registerGameServer("Muddle", new MuddleServer());
 
+        // Initialize the HighScoreAPI
+        HighScoreStorage highScoreStorage = new StubHighScoreStorage();
+        HighScoreManager highScoreManager = new HighScoreManager(highScoreStorage);
+        GlobalLeaderboard globalLeaderboard = new GlobalLeaderboard(highScoreStorage);
+        highScoreAPI = new HighScoreAPI(highScoreManager, globalLeaderboard);
     }
 
     public static void main(String... args) {
