@@ -1,5 +1,7 @@
 package minigames.server.highscore;
 
+import java.util.List;
+import java.util.Map;
 
 /**
  * Main class

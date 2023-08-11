@@ -17,12 +17,21 @@ public class HighScoreManager {
     // TODO: Implement the methods exposed in HighScoreAPI by using the storage ...
 
     // Record a new score if better than previous best
-    public void recordScore(String playerId, String gameName, int score);
+    public void recordScore(String playerId, String gameName, int score) {
+        // TODO: Implement this method
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
     // Retrieve list of top scores for a game
-    public List<ScoreRecord> getTopScores(String gameName, int limit);
+    public List<ScoreRecord> getTopScores(String gameName, int limit) {
+        // TODO: Implement this method
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
     // Retrieve the personal best score of a player for a game
-    public ScoreRecord getPersonalBest(String playerId, String gameName);
+    public ScoreRecord getPersonalBest(String playerId, String gameName) {
+        // TODO: Implement this method
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
 }

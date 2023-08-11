@@ -73,12 +73,13 @@ public class GlobalLeaderboard {
         String gameName = scores.get(0).getGameName();
         GameMetadata gameMetadata = storage.getGameMetadata(gameName);
 
-        // Sort scores from lowest to highest
-        scores.sort(Comparator.comparingInt(ScoreRecord::getScore));
-
-        // Reverse unless lower scores are better
-        if (!gameMetadata.isLowerBetter()) {
-            Collections.reverse(scores);
+        // Sort scores based on game metadata
+        if (gameMetadata.isLowerBetter()) {
+            // For lower-is-better, sort in ascending order.
+            scores.sort(Comparator.comparingInt(ScoreRecord::getScore)); 
+        } else {
+            // For higher-is-better, sort in descending order.
+            scores.sort(Comparator.comparingInt(ScoreRecord::getScore).reversed()); 
         }
 
         // Map players to their rank
