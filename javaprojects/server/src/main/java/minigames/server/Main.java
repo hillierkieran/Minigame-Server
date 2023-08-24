@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * A class for starting up the game server.
- * 
+ *
  * This is shaped a little by things that Vertx needs to start itself up
  */
 public class Main extends AbstractVerticle {
@@ -19,25 +19,25 @@ public class Main extends AbstractVerticle {
     /** A logger for logging output */
     private static final Logger logger = LogManager.getLogger(Main.class);
 
-    /** 
+    /**
      * Port to start the server on.
      * This is a little hacky, but when we run the server, we just put the port argument into this static field
      * so that the GameServer's start method can pick it up later
      */
     public static int port = 8080;
 
-    /** 
+    /**
      * The games that are available for each client. Static so that game servers and Main gan register them
      * without needing to worry about whether the server has started yet.
      */
     public static final GameRegistry gameRegistry = new GameRegistry();
 
-    /** 
+    /**
      * HighScoreAPI static reference (INCOMPLETE don't try to use yet)
-     * Provides access to high-score management and retrieval functionalities 
+     * Provides access to high-score management and retrieval functionalities
      * for all game components via `Main.highScoreAPI`.
      */
-    public static HighScoreAPI highScoreAPI;
+    public static HighScoreAPI highScoreAPI = new HighScoreAPI();
 
     /**
      * A place for groups to put code that registers their GameServer with the GameRegistry, etc.
@@ -51,16 +51,24 @@ public class Main extends AbstractVerticle {
         HighScoreManager highScoreManager = new HighScoreManager(highScoreStorage);
         GlobalLeaderboard globalLeaderboard = new GlobalLeaderboard(highScoreStorage);
         highScoreAPI = new HighScoreAPI(highScoreManager, globalLeaderboard);
+
+        //adding some dummy/default names to the player list
+        players.add("James");
+        players.add("Sarah");
+        players.add("Andrew");
+        players.add("Amy");
+        players.add("Robert");
+        players.add("Georgia");
     }
 
     public static void main(String... args) {
         if (args.length > 0) {
             try {
-                int p = Integer.parseInt(args[0]);                
+                int p = Integer.parseInt(args[0]);
                 if (p >= 1024 && p <= 49151) {
                     port = p;
                 } else {
-                    logger.error("Port {} is outside the user port range of 1024 to 49151", args[0]);    
+                    logger.error("Port {} is outside the user port range of 1024 to 49151", args[0]);
                 }
             } catch (NumberFormatException ex) {
                 logger.error("Port {} could not be parsed as a number", args[0]);

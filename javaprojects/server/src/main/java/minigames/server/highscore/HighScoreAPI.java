@@ -10,8 +10,18 @@ import java.util.Map;
  */
 public class HighScoreAPI {
 
+    private HighScoreStorage storage;
     private HighScoreManager manager;
     private GlobalLeaderboard globalLeaderboard;
+
+    /**
+     * Constructor
+     */
+    public HighScoreAPI() {
+        this.storage = new DerbyHighScoreStorage();
+        this.manager = new HighScoreManager(this.storage);
+        this.globalLeaderboard = new GlobalLeaderboard(this.storage);
+    }
 
     /**
      * Constructor
