@@ -16,5 +16,6 @@ dependencies {
 
     implementation group: 'org.apache.derby', name: 'derby', version: '10.16.1.1'
     implementation group: 'org.apache.derby', name: 'derbyshared', version: '10.16.1.1'
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '4.0.3'
 }
 

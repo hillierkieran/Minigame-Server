@@ -33,11 +33,18 @@ public class Main extends AbstractVerticle {
     public static final GameRegistry gameRegistry = new GameRegistry();
 
     /**
+     * Derby database static reference
+     * Provides pooled connection access to the database.
+     * See `DerbyHighScoreStorage` class for example usage.
+     */
+    public static DerbyDatabaseAPI derbyDatabase = new DerbyDatabaseAPI();
+
+    /**
      * HighScoreAPI static reference (INCOMPLETE don't try to use yet)
      * Provides access to high-score management and retrieval functionalities
      * for all game components via `Main.highScoreAPI`.
      */
-    public static HighScoreAPI highScoreAPI = new HighScoreAPI();
+    public static HighScoreAPI highScoreAPI = new HighScoreAPI(derbyDatabase);
 
     /**
      * A place for groups to put code that registers their GameServer with the GameRegistry, etc.

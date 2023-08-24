@@ -17,8 +17,8 @@ public class HighScoreAPI {
     /**
      * Constructor
      */
-    public HighScoreAPI() {
-        this.storage = new DerbyHighScoreStorage();
+    public HighScoreAPI(DerbyDatabaseAPI database) {
+        this.storage = new DerbyHighScoreStorage(database);
         this.manager = new HighScoreManager(this.storage);
         this.globalLeaderboard = new GlobalLeaderboard(this.storage);
     }

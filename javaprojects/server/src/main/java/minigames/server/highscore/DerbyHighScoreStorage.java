@@ -10,14 +10,13 @@ import java.util.List;
 
 public class DerbyHighScoreStorage implements HighScoreStorage {
 
-    private DerbyDatabaseAPI databaseAPI;
+    private DerbyDatabaseAPI database;
 
     /**
      * Constructor
      */
-    public DerbyHighScoreStorage() throws SQLException {
-        // Initialize the DerbyDatabaseAPI instance to interact with the database
-        databaseAPI = new DerbyDatabaseAPI();
+    public DerbyHighScoreStorage(DerbyDatabaseAPI database) throws SQLException {
+        this.database = database;
     }
 
     /**
@@ -27,7 +26,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
     public void storeScore(ScoreRecord record) {
         try {
             // Get a connection to the database
-            Connection connection = databaseAPI.getConnection();
+            Connection connection = database.getConnection();
 
             // Create an SQL insert statement to add the score record
             String sql = "INSERT INTO scores (playerId, gameName, score) VALUES (?, ?, ?)";
@@ -54,7 +53,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
         List<ScoreRecord> topScores = new ArrayList<>();
         try {
             // Get a connection to the database
-            Connection connection = databaseAPI.getConnection();
+            Connection connection = database.getConnection();
 
             // Create an SQL select statement to retrieve the top scores
             String sql = "SELECT playerId, score FROM scores WHERE gameName = ? ORDER BY score DESC LIMIT ?";
@@ -87,7 +86,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
         ScoreRecord personalBest = null;
         try {
             // Get a connection to the database
-            Connection connection = databaseAPI.getConnection();
+            Connection connection = database.getConnection();
 
             // Create an SQL select statement to retrieve the personal best score of a player
             String sql = "SELECT score FROM scores WHERE playerId = ? AND gameName = ? ORDER BY score DESC LIMIT 1";
@@ -120,7 +119,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
         List<ScoreRecord> allScores = new ArrayList<>();
         try {
             // Get a connection to the database
-            Connection connection = databaseAPI.getConnection();
+            Connection connection = database.getConnection();
 
             // Create an SQL select statement to retrieve all scores across games
             String sql = "SELECT playerId, gameName, score FROM scores";
@@ -147,6 +146,6 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
     protected void finalize() throws Throwable {
         // Before the object is garbage collected, close the database connection
         super.finalize();
-        databaseAPI.closeConnection();
+        database.closeConnection();
     }
 }
