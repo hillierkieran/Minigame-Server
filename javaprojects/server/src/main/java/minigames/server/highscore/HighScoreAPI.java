@@ -1,7 +1,11 @@
 package minigames.server.highscore;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.List;
 import java.util.Map;
+import minigames.server.database.DerbyDatabase;
+
 
 /**
  * Main class
@@ -13,11 +17,12 @@ public class HighScoreAPI {
     private HighScoreStorage storage;
     private HighScoreManager manager;
     private GlobalLeaderboard globalLeaderboard;
+    private static final Logger logger = LogManager.getLogger(HighScoreAPI.class);
 
     /**
      * Constructor
      */
-    public HighScoreAPI(DerbyDatabaseAPI database) {
+    public HighScoreAPI(DerbyDatabase database) {
         this.storage = new DerbyHighScoreStorage(database);
         this.manager = new HighScoreManager(this.storage);
         this.globalLeaderboard = new GlobalLeaderboard(this.storage);
@@ -35,17 +40,35 @@ public class HighScoreAPI {
 
     // Record a new score
     public void recordScore(String playerId, String gameName, int score) {
-        manager.recordScore(playerId, gameName, score);
+        try {
+            manager.recordScore(playerId, gameName, score);
+        } catch (HighScoreException ex) {
+            logger.error("Failed to record score for player {} in game {}: {}",
+                playerId, gameName, ex.getMessage());
+            throw ex;  // Rethrow the exception so that the caller is aware of the failure.
+        }
     }
 
     // Retrieve list of top scores for a game
     public List<ScoreRecord> getTopScores(String gameName, int limit) {
-        return manager.getTopScores(gameName, limit);
+        try {
+            return manager.getTopScores(gameName, limit);
+        } catch (HighScoreException ex) {
+            logger.error("Failed to retrieve top scores for game {}: {}",
+                gameName, ex.getMessage());
+            throw ex;  // Rethrow the exception so that the caller is aware of the failure.
+        }
     }
 
     // Retrieve the personal best score of a player for a game
     public ScoreRecord getPersonalBest(String playerId, String gameName) {
-        return manager.getPersonalBest(playerId, gameName);
+        try {
+            return manager.getPersonalBest(playerId, gameName);
+        } catch (HighScoreException ex) {
+            logger.error("Failed to retrieve personal best for player {} in game {}: {}",
+                playerId, gameName, ex.getMessage());
+            throw ex;  // Rethrow the exception so that the caller is aware of the failure.
+        }
     }
 
     /**
@@ -53,6 +76,12 @@ public class HighScoreAPI {
      * @return A sorted map of player IDs to global scores.
      */
     public Map<String, Integer> getGlobalLeaderboard() {
-        return globalLeaderboard.computeGlobalScores();
+        try {
+            return globalLeaderboard.computeGlobalScores();
+        } catch (HighScoreException ex) {
+            logger.error("Failed to compute the global leaderboard: {}",
+                ex.getMessage());
+            throw ex;  // Rethrow the exception so that the caller is aware of the failure.
+        }
     }
 }

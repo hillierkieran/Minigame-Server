@@ -2,42 +2,46 @@ package minigames.server.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class DerbyDatabaseAPI {
+public class DerbyDatabase implements DatabaseConnection {
 
+    private static final Logger logger = LogManager.getLogger(DerbyDatabase.class);
     private HikariDataSource dataSource;
     private static final String PROP_FILE_NAME = "DerbyDatabase.properties";
 
-    public DerbyDatabaseAPI() throws SQLException, URISyntaxException, IOException {
+    public DerbyDatabase() {
+        connect();
+    }
 
-        HikariConfig config = new HikariConfig();
-
-        // Load properties from `database.properties` file in resources dir
-        Properties properties = new Properties();
-        try (InputStream input = DerbyDatabaseAPI.class.getClassLoader().getResourceAsStream(PROP_FILE_NAME)) {
-            if (input == null) {
-                throw new IOException("Unable to find " + PROP_FILE_NAME);
-            }
-            properties.load(input);
+    private void connect() {
+        try {
+            initializeConnectionPool();
+        } catch(Exception e) {
+            logger.error("Error initializing database connection pool.", e);
+            throw new RuntimeException("Failed to initialize database connection pool.", e);
         }
+    }
 
-        // Get location of database data
-        URI propFileURI = DerbyDatabaseAPI.class.getClassLoader().getResource(PROP_FILE_NAME).toURI();
-        File propFile = new File(propFileURI);
-        String propDirPath = propFile.getParent();
-        String dbURL = "jdbc:derby:" + propDirPath + "/derbyDatabase;create=true";
+    public void disconnect() {
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+        }
+    }
 
-        // HikariCP settings
-        config.setJdbcUrl(dbURL);
+    private void initializeConnectionPool() throws Exception {
+        HikariConfig config = new HikariConfig();
+        Properties properties = loadDatabaseProperties();
+
+        config.setJdbcUrl(getDatabaseLocation());
         config.setDriverClassName(properties.getProperty("db.driverClass"));
         config.setMaximumPoolSize(Integer.parseInt(properties.getProperty("hikari.maxPoolSize")));
         config.setMinimumIdle(Integer.parseInt(properties.getProperty("hikari.minIdle")));
@@ -49,13 +53,41 @@ public class DerbyDatabaseAPI {
         dataSource = new HikariDataSource(config);
     }
 
-    public Connection getConnection() {
-        return dataSource.getConnection();
+    private Properties loadDatabaseProperties() throws Exception {
+        Properties properties = new Properties();
+        try (InputStream input = DerbyDatabase.class.getClassLoader().getResourceAsStream(PROP_FILE_NAME)) {
+            if (input == null) {
+                throw new Exception("Unable to find " + PROP_FILE_NAME);
+            }
+            properties.load(input);
+        }
+        return properties;
     }
 
-    public void closeConnection() throws SQLException {
-        if (dataSource != null) {
-            dataSource.close();
+    private String getDatabaseLocation() throws Exception {
+        URI propFileURI = DerbyDatabase.class.getClassLoader().getResource(PROP_FILE_NAME).toURI();
+        String propDirPath = Paths.get(propFileURI).getParent().toString();
+        return "jdbc:derby:" + propDirPath + "/derbyDatabase;create=true";
+    }
+
+    @Override
+    public Connection getConnection() {
+        try {
+            return dataSource.getConnection();
+        } catch(SQLException e) {
+            logger.error("Error fetching connection from pool.", e);
+            throw new RuntimeException("Failed to fetch connection from pool.", e);
+        }
+    }
+
+    @Override
+    public void closeConnection(Connection connection) {
+        if(connection != null) {
+            try {
+                connection.close();
+            } catch(SQLException e) {
+                logger.error("Error closing connection.", e);
+            }
         }
     }
 }
