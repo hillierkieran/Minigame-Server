@@ -3,91 +3,111 @@ package minigames.server.highscore;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 /**
- * Computes global rankings based on individual game rankings.
+ * The GlobalLeaderboard class computes global rankings for players across all games.
+ * <p>
+ * The class provides methods to calculate and retrieve player rankings based on their individual game rankings.
+ * Global rankings are determined by aggregating each player's rankings across all games.
+ * The aggregate scores are then normalised to account for the number of games a player has played, ensuring 
+ * that players are not penalised for playing more games. Players with lower normalised scores are ranked higher.
+ * </p>
  */
 public class GlobalLeaderboard {
 
-    private HighScoreStorage storage;   // Storage to fetch game scores
+    private HighScoreStorage storage;
 
     /**
-     * Constructor
-     * @param storage The storage mechanism for retrieving scores
+     * Initialises a new instance of the GlobalLeaderboard class.
+     *
+     * @param storage The storage mechanism used to retrieve game scores and metadata.
      */
     public GlobalLeaderboard(HighScoreStorage storage) {
         this.storage = storage;
     }
 
     /**
-     * Computes the global scores for all players across all games.
-     * @return A sorted map of player IDs to global scores.
+     * Computes and returns the global rankings for all players across all games.
+     *
+     * @return A map where the key is the player ID and the value is their global rank,
+     *         normalised for the number of games they've played.
      */
     public Map<String, Integer> computeGlobalScores() {
-
-        // Retrieve all scores across all games
+        // Retrieve all scores from storage
         List<ScoreRecord> allScores = storage.retrieveAllScores();
 
-        // Group by game - Map<GameName, List<ScoreRecord>>
-        Map<String, List<ScoreRecord>> scoresByGame = allScores.stream()
-            .collect(Collectors.groupingBy(ScoreRecord::getGameName));
+        // Group the scores by game and compute rankings for each game
+        Map<String, Map<String, Integer>> rankingsByGame = allScores.stream()
+            .collect(Collectors.groupingBy(ScoreRecord::getGameName))
+            .entrySet().stream()
+            .collect(Collectors.toMap(
+                    Map.Entry::getKey, 
+                    entry -> computeRankingsForGame(entry.getKey(), entry.getValue())));
 
-        // Compute rankings for each game - Map<GameName, Map<playerId, rank>>
-        Map<String, Map<String, Integer>> rankingsByGame = new HashMap<>();
-        // for each game...
-        for (String game : scoresByGame.keySet()) {
-            // get each player's rank
-            Map<String, Integer> playerRankings = computeRankingsForGame(scoresByGame.get(game));
-            rankingsByGame.put(game, playerRankings);
-        }
-
-        // Compute global scores - Map<playerID, totalRank>
+        // Aggregate rankings from each game to compute a global score for each player
+        // Also count the number of games played by each player for the next step
         Map<String, Integer> globalScores = new HashMap<>();
-        // for each game...
-        for (Map<String, Integer> rankings : rankingsByGame.values()) {
-            // add each player's rank to their total 
-            for (String player : rankings.keySet()) {
-                globalScores.put(player, globalScores.getOrDefault(player, 0) + rankings.get(player));
-            }
+        Map<String, Integer> gamesPlayed = new HashMap<>();
+        rankingsByGame.values().forEach(rankings -> {
+            rankings.forEach((player, rank) -> {
+                globalScores.put(player, globalScores.getOrDefault(player, 0) + rank);
+                gamesPlayed.put(player, gamesPlayed.getOrDefault(player, 0) + 1);
+            });
+        });
+
+        // Normalise the rankings by dividing a player's global score by the number of games played
+        for (String player : globalScores.keySet()) {
+            globalScores.put(player, globalScores.get(player) / gamesPlayed.get(player));
         }
 
-        // return ordered list of player's summed rank - LinkedHashMap<playerId, totalRank>
-        return globalScores
-            .entrySet() // get a set of the map's entries (key-value pairs)
-            .stream()   // transform set into a stream
-            .sorted(Map.Entry.comparingByValue())   // sort stream of entries by their ascending values (totalRank)
-            .collect(Collectors.toMap(  // collect sorted stream back into a map...
-                Map.Entry::getKey,      // for each entry, get and use the key (playerId) in the new map.
-                Map.Entry::getValue,    // for each entry, get and use the value (totalRank) in the new map.
-                (e1, e2) -> e1,         // if there are duplicate keys, keep the first one (e1).
-                LinkedHashMap::new));   // specify type of map to create
+        // Convert the aggregated and normalised scores to global ranks
+        Map<String, Integer> globalRanks = convertScoresToRanks(globalScores);
+
+        return globalRanks;
     }
 
     /**
-     * Computes the rankings for a specific game.
-     * @param scores The scores for a game
-     * @return A map of player IDs to their rankings for the game.
+     * Computes the rankings for a specific game based on the game's scores.
+     *
+     * @param gameName Name of the game for which rankings need to be computed.
+     * @param scores A list of scores for the specific game.
+     * @return A map where the key is the player ID and the value is their rank for the given game.
      */
-    private Map<String, Integer> computeRankingsForGame(List<ScoreRecord> scores) {
-
-        // Get game metadata
-        String gameName = scores.get(0).getGameName();
-        GameMetadata gameMetadata = storage.getGameMetadata(gameName);
-
-        // Sort scores based on game metadata
-        if (gameMetadata.isLowerBetter()) {
-            // For lower-is-better, sort in ascending order.
-            scores.sort(Comparator.comparingInt(ScoreRecord::getScore)); 
-        } else {
-            // For higher-is-better, sort in descending order.
-            scores.sort(Comparator.comparingInt(ScoreRecord::getScore).reversed()); 
-        }
-
-        // Map players to their rank
+    private Map<String, Integer> computeRankingsForGame(String gameName, List<ScoreRecord> scores) {
+        // Sort scores based on the game's criteria (lower or higher is better)
+        scores.sort((score1, score2) -> 
+            storage.getGameMetadata(gameName).isLowerBetter() 
+            ? Integer.compare(score1.getScore(), score2.getScore())
+            : Integer.compare(score2.getScore(), score1.getScore()));
+        
+        // Assign rankings based on sorted scores
         Map<String, Integer> rankings = new HashMap<>();
         for (int i = 0; i < scores.size(); i++) {
             rankings.put(scores.get(i).getPlayerId(), i + 1);
         }
-
         return rankings;
+    }
+
+    /**
+     * Converts the aggregated and normalised global scores into sequential ranks (e.g., 1st, 2nd, 3rd, etc.).
+     *
+     * @param globalScores A map of player IDs to their normalised aggregated global scores.
+     * @return A map of player IDs to their global rank.
+     */
+    private Map<String, Integer> convertScoresToRanks(Map<String, Integer> globalScores) {
+        // Sort players based on their global scores
+        List<Map.Entry<String, Integer>> sortedScores = globalScores.entrySet()
+            .stream()
+            .sorted(Map.Entry.comparingByValue())
+            .collect(Collectors.toList());
+
+        // Convert scores to ranks (1st, 2nd, 3rd, etc.)
+        Map<String, Integer> globalRanks = new LinkedHashMap<>();
+        int currentRank = 1, prevScore = -1;
+        for (Map.Entry<String, Integer> entry : sortedScores) {
+            globalRanks.put(entry.getKey(), (prevScore != -1 && entry.getValue() == prevScore) ? currentRank : currentRank++);
+            prevScore = entry.getValue();
+        }
+        return globalRanks;
     }
 }

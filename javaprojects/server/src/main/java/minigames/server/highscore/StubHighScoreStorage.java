@@ -3,6 +3,7 @@ package minigames.server.highscore;
 import java.util.Collections;
 import java.util.List;
 
+@Deprecated
 public class StubHighScoreStorage implements HighScoreStorage {
 
     @Override

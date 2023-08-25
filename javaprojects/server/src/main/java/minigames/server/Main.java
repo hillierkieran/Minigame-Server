@@ -34,16 +34,16 @@ public class Main extends AbstractVerticle {
     public static final GameRegistry gameRegistry = new GameRegistry();
 
     /**
-     * Derby database static reference
-     * Provides pooled connection access to the database.
-     * See `DerbyHighScoreStorage` class for example usage.
+     * Represents the application's (current) primary database, utilising the Derby embedded database system.
+     * This instance provides pooled connections and should be initialised during application startup.
+     * Resources and connections associated with this database will be released during application shutdown.
      */
     public static DerbyDatabase derbyDatabase;
 
     /**
-     * HighScoreAPI static reference (INCOMPLETE don't try to use yet)
-     * Provides access to high-score management and retrieval functionalities
-     * for all game components via `Main.highScoreAPI`.
+     * Provides a set of APIs to manage and retrieve high scores from the database.
+     * This instance interacts directly with the DerbyDatabase to execute database operations.
+     * High scores from all game components can be accessed via this API.
      */
     public static HighScoreAPI highScoreAPI;
 
@@ -61,19 +61,20 @@ public class Main extends AbstractVerticle {
         highScoreAPI = new HighScoreAPI(highScoreManager, globalLeaderboard);
 
         try {
-            // Initialise the Derby database
+            // Initialise the Derby database, making it accessible for other components.
             derbyDatabase = new DerbyDatabase();
-            // Before shutting down application, release all Derby database connections
+            // It's essential to release all database connections before shutting down
+            // the application to prevent potential resource leaks or database corruption.
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 if (derbyDatabase != null) {
                     derbyDatabase.disconnect();
                 }
             }));
         } catch (Exception e) {
-            logger.error("Failed to initialize or interact with the database.", e);
+            logger.error("Failed to initialise or interact with the database.", e);
         }
 
-        // Initialise the HighScoreAPI
+        // Initialise the HighScoreAPI with the Derby database as its backend storage.
         highScoreAPI = new HighScoreAPI(derbyDatabase);
 
         //adding some dummy/default names to the player list
