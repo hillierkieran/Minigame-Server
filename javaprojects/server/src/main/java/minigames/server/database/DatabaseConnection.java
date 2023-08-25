@@ -22,9 +22,11 @@ public interface DatabaseConnection {
     /**
      * Closes the provided database connection.
      * Implementations using connection pooling might not physically close the connection
-     * but might return it to the pool for reuse.
+     * but might return it to the pool for reuse. Returns true if the operation is successful
+     * and false otherwise.
      *
      * @param connection The {@link Connection} object that needs to be closed or returned to the pool.
+     * @return true if the connection is closed or returned to the pool successfully, false otherwise.
      */
-    void closeConnection(Connection connection);
+    boolean closeConnection(Connection connection);
 }

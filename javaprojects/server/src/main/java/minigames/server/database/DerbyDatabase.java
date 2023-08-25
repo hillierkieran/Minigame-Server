@@ -39,6 +39,16 @@ public class DerbyDatabase implements DatabaseConnection {
     }
 
     /**
+     * Constructor that accepts a HikariDataSource instance.
+     * This is primarily designed for testing, to allow injection of mock data sources.
+     * 
+     * @param dataSource the HikariDataSource to be used for database connections
+     */
+    public DerbyDatabase(HikariDataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    /**
      * Establishes the connection by initialising the connection pool.
      */
     private void connect() {
@@ -139,17 +149,21 @@ public class DerbyDatabase implements DatabaseConnection {
      * Closes the provided database connection, returning it to the pool.
      *
      * @param connection the database connection to be closed.
+     * @return true if the connection is closed successfully, false otherwise.
      */
     @Override
-    public void closeConnection(Connection connection) {
+    public boolean closeConnection(Connection connection) {
         if(connection != null) {
             try {
                 // Return the connection to the connection pool
                 connection.close();
+                return true;
             } catch(SQLException e) {
                 // If there's an error during connection closure, log it
                 logger.error("Error closing connection.", e);
+                return false;
             }
         }
+        return false; 
     }
 }
