@@ -63,11 +63,12 @@ public class Main extends AbstractVerticle {
         try {
             // Initialise the Derby database, making it accessible for other components.
             derbyDatabase = new DerbyDatabase();
-            // It's essential to release all database connections before shutting down
-            // the application to prevent potential resource leaks or database corruption.
+            // It's essential to release all database connections and shut down the database
+            // properly before the application terminates to prevent potential resource leaks 
+            // or database corruption.
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 if (derbyDatabase != null) {
-                    derbyDatabase.disconnect();
+                    derbyDatabase.shutdown();
                 }
             }));
         } catch (Exception e) {

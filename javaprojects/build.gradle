@@ -38,6 +38,8 @@ subprojects {
         // For Hashing Passwords
         implementation "org.connectbot:jbcrypt:1.0.2"
 
+        // Derby database
+        implementation group: 'org.apache.derby', name: 'derby', version: '10.16.1.1'
     }
 
     test {
