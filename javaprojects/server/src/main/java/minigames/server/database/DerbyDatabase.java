@@ -32,7 +32,7 @@ import java.util.Properties;
  * 
  * @author Kieran Hillier (Group: Merge Mavericks)
  */
-public class DerbyDatabase implements DatabaseConnection {
+public class DerbyDatabase implements DatabaseConnection, AutoCloseable {
 
     private static final Logger logger = LogManager.getLogger(DerbyDatabase.class);
     private static final String DEFAULT_PROP_FILE_NAME = "database/DerbyDatabase.properties";
@@ -40,6 +40,7 @@ public class DerbyDatabase implements DatabaseConnection {
     private HikariDataSource dataSource;
     private String propFileName; 
     private boolean isTest = false; 
+    private volatile boolean closed = false;
 
     /**
      * Initializes the database connection pool upon instantiation.
@@ -76,12 +77,14 @@ public class DerbyDatabase implements DatabaseConnection {
      * @throws SQLException if any error occurs during connection pool initialisation.
      */
     void initialiseConnectionPool() throws IOException, SQLException {
+        /*
         try {
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
         } catch (ClassNotFoundException e) {
             logger.error("Unable to load Derby JDBC driver.", e);
             throw new RuntimeException("Failed to load Derby JDBC driver.", e);
         }
+        */
         // Create a HikariCP configuration object
         HikariConfig config = new HikariConfig();
         // Load properties from the configuration file
@@ -99,6 +102,7 @@ public class DerbyDatabase implements DatabaseConnection {
             throw new IOException("Failed to determine database location.", e);
         }
         config.setDriverClassName(properties.getProperty("db.driverClass"));
+        //config.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
         config.setMaximumPoolSize(Integer.parseInt(properties.getProperty("hikari.maxPoolSize")));
         config.setMinimumIdle(Integer.parseInt(properties.getProperty("hikari.minIdle")));
         config.setIdleTimeout(Long.parseLong(properties.getProperty("hikari.idleTimeout")));
@@ -237,6 +241,11 @@ public class DerbyDatabase implements DatabaseConnection {
      * </p>
      */
     public void shutdown() {
+        // If already closed, just return without attempting to shut down again
+        if (closed) {
+            return;
+        }
+    
         disconnect();  // Ensure all pooled connections are released
         try (Connection ignored = DriverManager.getConnection("jdbc:derby:;shutdown=true")) {
             // The above connection attempt will always throw an exception because 
@@ -248,6 +257,13 @@ public class DerbyDatabase implements DatabaseConnection {
             } else {
                 logger.error("Derby did not shut down normally", se);
             }
+        } finally {
+            closed = true;
         }
+    }
+
+    @Override
+    public void close() throws SQLException {
+        shutdown();
     }
 }

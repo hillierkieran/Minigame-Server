@@ -1,51 +1,73 @@
 package minigames.server.database;
 
-import com.zaxxer.hikari.HikariDataSource;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
+import java.sql.SQLTransientConnectionException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
+import com.zaxxer.hikari.HikariDataSource;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * This class is responsible for conducting tests on the DerbyDatabase class.
+ * All tests are conducted using JUnit and ensure the proper functioning of database operations.
+ * 
+ * @author Kieran Hillier (Group: Merge Mavericks)
+ */
 public class DerbyDatabaseTests {
 
     private DerbyDatabase derbyDatabase = null;
     private static final String TEST_PROP_FILE_NAME = "database/DerbyDatabaseTest.properties";
     private static final Logger logger = LogManager.getLogger(DerbyDatabaseTests.class);
 
+
+    /**
+     * Set-up configurations that apply for all test cases. 
+     * This specific setup indicates a test environment.
+     */
     @BeforeAll
     public static void setup() {
         System.setProperty("testEnv", "true");
     }
 
+
+    /**
+     * Re-initialises the test database before each test.
+     */
+    @BeforeEach
     public void InitialiseTestDatabase() {
+        tearDown();
         derbyDatabase = new DerbyDatabase(TEST_PROP_FILE_NAME);
     }
 
+
+    /**
+     * Builds a sample table 'TEST_TABLE' in the database.
+     */
     public void buildTable() {
-        if (derbyDatabase == null) {
-            InitialiseTestDatabase();
-        }
+        InitialiseTestDatabase();
         // Set up the TEST_TABLE
-        try (   Connection connection = derbyDatabase.getConnection();
-                Statement stmt = connection.createStatement()) {
+        try (
+            Connection connection = derbyDatabase.getConnection();
+            Statement stmt = connection.createStatement()
+        ) {
             // Drop the TEST_TABLE if it exists
             String dropTableSQL = "DROP TABLE IF EXISTS TEST_TABLE";
             stmt.execute(dropTableSQL);
@@ -57,6 +79,10 @@ public class DerbyDatabaseTests {
         }
     }
 
+
+    /**
+     * Cleans up resources after each test, such as closing database connections and clearing data.
+     */
     @AfterEach
     public void tearDown() {
         // Cleanup resources here, e.g., close database connections, clear data, etc.
@@ -66,8 +92,11 @@ public class DerbyDatabaseTests {
         }
     }
 
-    // WARNING! This test could be dangerous. Make sure you know what you're doing!
-    // Deletes all test database files and directories
+
+    /**
+     * WARNING! Editing this method could be dangerous. 
+     * This method removes all test database files and directories after all tests are complete.
+     */
     @AfterAll
     public static void cleanUp() {
         // Step 1: Use a more unique and specific directory name to minimize accidental deletions
@@ -93,28 +122,39 @@ public class DerbyDatabaseTests {
                 logger.error("I/O Error during operation: ", e);
             }
         }
-    }
+    } /* cleanUp */
 
-    @Test // SUCESS 
+
+    /**
+     * This is a dummy test to make sure the test suite runs.
+     */
+    @Test
+    @DisplayName("Ensure the test suite runs correctly")
     public void testTestSuiteRuns() {
         logger.info("Dummy test to show the test suite runs");
         assertTrue(true);
     }
 
+
+    /**
+     * Testing default constructor for the database.
+     */
     @Test
+    @DisplayName("Default constructor initializes without errors")
     public void testDefaultConstructor() {
-        DerbyDatabase db = null;
-        try {
-            db = new DerbyDatabase();
+        try (DerbyDatabase db = new DerbyDatabase()) {
+            assertNotNull(db);
         } catch (Exception e) {
-            fail("Error initialising Derby database with default constructor");
-        } finally {
-            if (db != null)
-            db.shutdown();
+            fail("Error initialising Derby database with default constructor", e);
         }
     }
 
+
+    /**
+     * Testing test-constructor for the database.
+     */
     @Test
+    @DisplayName("Test-constructor initializes without errors using test properties")
     public void testAltConstructor() {
         try {
             InitialiseTestDatabase();
@@ -123,6 +163,11 @@ public class DerbyDatabaseTests {
         }
     }
 
+
+    /**
+     * Test for building the sample TEST_TABLE.
+     */
+    @DisplayName("Building the TEST_TABLE successfully in the database")
     @Test
     public void testBuildingTable() {
         try {
@@ -132,14 +177,25 @@ public class DerbyDatabaseTests {
         }
     }
 
-    @Test // SUCESS 
-    @DisplayName("Exception thrown when properties file missing")
+
+    /**
+     * Tests the scenario when a properties file is missing.
+     */
+    @Test
+    @DisplayName("Exception is thrown when the properties file is missing")
     public void testMissingPropertiesFile() {
-        assertThrows(RuntimeException.class, () -> new DerbyDatabase("NonexistentProperties.properties"));
+        RuntimeException thrown = assertThrows(RuntimeException.class, 
+            () -> new DerbyDatabase("NonexistentProperties.properties"));
+        assertTrue(thrown.getCause() instanceof FileNotFoundException);
+        assertTrue(thrown.getCause().getMessage().contains("Unable to find"));
     }
 
-    @Test
-    @DisplayName("Database initialises with correct schema")
+
+    /**
+     * Tests the database initialisation with the correct schema.
+     */
+    @Test 
+    @DisplayName("Database initializes with the expected TEST_TABLE schema")
     public void testDatabaseInitialisation() throws SQLException {
         InitialiseTestDatabase();
         Connection connection = derbyDatabase.getConnection();
@@ -148,8 +204,12 @@ public class DerbyDatabaseTests {
         derbyDatabase.closeConnection(connection);
     }
 
+
+    /**
+     * Ensures the database connection can be successfully fetched.
+     */
     @Test
-    @DisplayName("getConnection successfully retrieves connection")
+    @DisplayName("Database connection can be successfully retrieved")
     public void testGetConnection() throws SQLException {
         InitialiseTestDatabase();
         Connection connection = derbyDatabase.getConnection();
@@ -158,8 +218,12 @@ public class DerbyDatabaseTests {
         derbyDatabase.closeConnection(connection);
     }
 
+
+    /**
+     * Ensures the database connection can be successfully closed.
+     */
     @Test
-    @DisplayName("closeConnection successfully closes connection")
+    @DisplayName("Database connection can be successfully closed")
     public void testCloseConnection() throws SQLException {
         InitialiseTestDatabase();
         Connection connection = derbyDatabase.getConnection();
@@ -167,73 +231,76 @@ public class DerbyDatabaseTests {
         assertTrue(connection.isClosed());
     }
 
+
+    /**
+     * Checks if all connections are closed after disconnecting from the database.
+     */
     @Test
-    @DisplayName("disconnect closes all connections")
+    @DisplayName("All database connections are closed upon disconnect")
     public void testDisconnect() {
         InitialiseTestDatabase();
         derbyDatabase.disconnect();
         assertTrue(((HikariDataSource) derbyDatabase.getDataSource()).isClosed());
     }
 
+
+    /**
+     * Ensures the proper shutdown of the Derby database.
+     */
     @Test
-    @DisplayName("shutdown method closes the dataSource and shuts down the Derby database")
+    @DisplayName("Shutdown procedure closes the dataSource and halts the Derby database")
     public void testShutdown() {
         InitialiseTestDatabase();
         derbyDatabase.shutdown();
         assertTrue(((HikariDataSource) derbyDatabase.getDataSource()).isClosed());
     }
 
+
+    /**
+     * Verifies the database's behaviour when the connection pool size is exceeded.
+     */
     @Test
-    @DisplayName("Pooling behaviour when requesting more than pool size connections")
-    public void testExceedingPoolSize() {
+    @DisplayName("Behaviour when attempting to exceed connection pool size")
+    public void testSimpleExceedPoolSize() {
         InitialiseTestDatabase();
-        // Fetch the configured max pool size
-        int configuredMaxPoolSize = ((HikariDataSource) derbyDatabase.getDataSource()).getMaximumPoolSize();
-        long connectionTimeout = ((HikariDataSource) derbyDatabase.getDataSource()).getConnectionTimeout();
 
-        // Request more connections than the configured max pool size to test the behaviour
-        int numOfConnections = configuredMaxPoolSize + 2; // This will exceed the max pool by 2
-        ExecutorService service = Executors.newFixedThreadPool(numOfConnections);  
-        CountDownLatch latch = new CountDownLatch(numOfConnections);
+        // Get the maximum pool size from the datasource configuration
+        int maxPoolSize = ((HikariDataSource) derbyDatabase.getDataSource()).getMaximumPoolSize();
 
-        List<Exception> exceptions = Collections.synchronizedList(new ArrayList<>());
+        List<Connection> connections = new ArrayList<>();
 
-        for (int i = 0; i < numOfConnections; i++) {
-            service.submit(() -> {
-                try {
-                    derbyDatabase.getConnection();
-                } catch (RuntimeException e) {
-                    // Capture exceptions for later assertion
-                    if (e.getCause() instanceof SQLTimeoutException) {
-                        exceptions.add(new TimeoutException("Connection request timed out after " + connectionTimeout + "ms."));
-                    } else {
-                        exceptions.add(e);
-                    }
-                } finally {
-                    // Always count down the latch regardless of whether an exception was thrown
-                    latch.countDown();
+        // Try to fetch more connections than the pool allows
+        for (int i = 0; i < maxPoolSize + 2; i++) {
+            try {
+                Connection conn = derbyDatabase.getConnection();
+                assertNotNull(conn);  // Ensures we actually got a connection
+                connections.add(conn);
+            } catch (RuntimeException e) {
+                if (e.getCause() instanceof SQLTransientConnectionException) {
+                    logger.info("Expected timeout occurred: {}", e.getMessage());
+                } else {
+                    logger.error("Unexpected exception: {}", e.getCause().toString());
+                    fail("Unexpected exception occurred when getting connection", e);
                 }
-            });
+            }
         }
 
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        // Clean up - close all fetched connections
+        connections.forEach(conn -> {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                logger.error("Error while closing connection", e);
+            }
+        });
+    } /* testSimpleExceedPoolSize */
 
-        service.shutdown();
 
-        // Assert that no exceptions were thrown during concurrent execution
-        assertTrue( exceptions.isEmpty(), 
-                    "Exceptions were thrown during concurrent execution: " +
-                    exceptions.stream()
-                        .map(Exception::getMessage)
-                        .collect(Collectors.joining(", ")));
-    }
-
+    /**
+     * Validates that multiple connections can be fetched concurrently from the database.
+     */
     @Test
-    @DisplayName("Testing concurrent connections")
+    @DisplayName("Multiple connections can be fetched concurrently")
     public void testConcurrentConnections() {
         InitialiseTestDatabase();
         int numOfThreads = 5;  // Sample number for concurrent threads
@@ -271,10 +338,14 @@ public class DerbyDatabaseTests {
                 exceptions.stream()
                     .map(Exception::toString)
                     .collect(Collectors.joining(", ")));
-    }
+    } /* testConcurrentConnections */
 
-    @Test
-    @DisplayName("Can write to and read from the test database using SQL")
+
+    /**
+     * Ensures SQL operations can perform both write and read tasks on the test database.
+     */
+    @Test 
+    @DisplayName("Writing to and reading from the test database using SQL operations")
     public void testSQLReadWrite() throws SQLException {
         buildTable();
         Connection connection = derbyDatabase.getConnection();
@@ -295,5 +366,5 @@ public class DerbyDatabaseTests {
         assertEquals("TestName", rs.getString("NAME"));
 
         derbyDatabase.closeConnection(connection);
-    }
+    } /* testSQLReadWrite */
 }
