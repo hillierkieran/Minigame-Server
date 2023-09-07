@@ -2,6 +2,7 @@ package minigames.server.highscore;
 
 import java.util.Objects;
 
+
 /**
  * Represents a record of a player's score for a particular game.
  * 
@@ -18,9 +19,11 @@ import java.util.Objects;
  * This class can be used to store, retrieve, and manipulate player score details in the high score system.
  */
 public class ScoreRecord {
+
     private String playerId;    // The unique identifier of the player
     private String gameName;    // The name of the game where the score was achieved
     private int score;          // The numeric score value achieved by the player
+
 
     /**
      * Constructs a ScoreRecord object with the provided player ID, game name, and score.
@@ -35,15 +38,18 @@ public class ScoreRecord {
         this.score = score;
     }
 
+
     // Getters
     public String getPlayerId() { return playerId; }
     public String getGameName() { return gameName; }
     public int getScore() { return score; }
 
+
     // Setters
     public void setPlayerId(String playerId) { this.playerId = playerId; }
     public void setGameName(String gameName) { this.gameName = gameName; }
     public void setScore(int score) { this.score = score; }
+
 
     /**
      * Provides a string representation of this ScoreRecord object.

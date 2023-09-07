@@ -1,6 +1,8 @@
 package minigames.server.highscore;
 
+import java.util.stream.Collectors;
 import java.util.List;
+
 
 /**
  * Manages the high score functionalities which includes storing and retrieving of high scores 
@@ -10,18 +12,25 @@ import java.util.List;
  * whether a new score should be recorded or not.
  * </p>
  */
-public class HighScoreManager {
+class HighScoreManager {
 
     private HighScoreStorage storage;
+
 
     /**
      * Constructor to create a new instance of the HighScoreManager.
      *
      * @param storage The HighScoreStorage implementation that this manager should use.
      */
-    public HighScoreManager(HighScoreStorage storage) {
+    HighScoreManager(HighScoreStorage storage) {
         this.storage = storage;
     }
+
+
+    void registerGame(String gameName, Boolean isLowerBetter) {
+        storage.registerGame(gameName, isLowerBetter);
+    }
+
 
     /**
      * Records a new score if it's better than the player's previous best, considering the game's metadata.
@@ -31,7 +40,7 @@ public class HighScoreManager {
      * @param score The score achieved by the player.
      * @throws HighScoreException If game metadata is not found or any other error occurs.
      */
-    public void recordScore(String playerId, String gameName, int score) {
+    void recordScore(String playerId, String gameName, int score) {
         GameMetadata gameMetadata = storage.getGameMetadata(gameName);
         if (gameMetadata == null) {
             throw new HighScoreException("Game metadata not found for game: " + gameName);
@@ -56,16 +65,33 @@ public class HighScoreManager {
         }
     }
 
+
     /**
      * Retrieves a list of the top scores for a specific game, up to a specified limit.
      * 
      * @param gameName The name of the game.
-     * @param limit The maximum number of top scores to return.
      * @return A list of ScoreRecord objects containing the top scores for the game.
      */
-    public List<ScoreRecord> getTopScores(String gameName, int limit) {
-        return storage.retrieveTopScores(gameName, limit);
+    List<ScoreRecord> getTopScores(String gameName) {
+        GameMetadata gameMetadata = storage.getGameMetadata(gameName);
+        if (gameMetadata == null) {
+            throw new HighScoreException(
+                "Game metadata not found for game: " + gameName
+            );
+        }
+
+        List<ScoreRecord> scores = storage.retrieveTopScores(gameName);
+        scores.sort((record1, record2) -> {
+            if (gameMetadata.isLowerBetter()) {
+                return Integer.compare(record1.getScore(), record2.getScore());
+            } else {
+                return Integer.compare(record2.getScore(), record1.getScore());
+            }
+        });
+
+        return scores.stream().collect(Collectors.toList());
     }
+
 
     /**
      * Retrieves the personal best score of a specific player for a specific game.
@@ -74,7 +100,7 @@ public class HighScoreManager {
      * @param gameName The name of the game.
      * @return A ScoreRecord object containing the personal best score of the player for the game.
      */
-    public ScoreRecord getPersonalBest(String playerId, String gameName) {
+    ScoreRecord getPersonalBest(String playerId, String gameName) {
         return storage.retrievePersonalBest(playerId, gameName);
     }
 }

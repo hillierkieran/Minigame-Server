@@ -51,6 +51,9 @@ public class Main extends AbstractVerticle {
      * A place for groups to put code that registers their GameServer with the GameRegistry, etc.
      */
     private static void doWiring() {
+        // Initialise the Derby Database singleton.
+        derbyDatabase = DerbyDatabase.getInstance();
+
         // Register our first demo game
         gameRegistry.registerGameServer("Muddle", new MuddleServer());
 
@@ -60,23 +63,8 @@ public class Main extends AbstractVerticle {
         GlobalLeaderboard globalLeaderboard = new GlobalLeaderboard(highScoreStorage);
         highScoreAPI = new HighScoreAPI(highScoreManager, globalLeaderboard);
 
-        try {
-            // Initialise the Derby database, making it accessible for other components.
-            derbyDatabase = new DerbyDatabase();
-            // It's essential to release all database connections and shut down the database
-            // properly before the application terminates to prevent potential resource leaks 
-            // or database corruption.
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                if (derbyDatabase != null) {
-                    derbyDatabase.shutdown();
-                }
-            }));
-        } catch (Exception e) {
-            logger.error("Failed to initialise or interact with the database.", e);
-        }
-
-        // Initialise the HighScoreAPI with the Derby database as its backend storage.
-        highScoreAPI = new HighScoreAPI(derbyDatabase);
+        // Initialise the HighScoreAPI
+        highScoreAPI = new HighScoreAPI();
 
         //adding some dummy/default names to the player list
         players.add("James");

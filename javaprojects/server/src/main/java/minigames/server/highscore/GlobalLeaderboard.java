@@ -17,6 +17,7 @@ public class GlobalLeaderboard {
 
     private HighScoreStorage storage;
 
+
     /**
      * Initialises a new instance of the GlobalLeaderboard class.
      *
@@ -25,6 +26,7 @@ public class GlobalLeaderboard {
     public GlobalLeaderboard(HighScoreStorage storage) {
         this.storage = storage;
     }
+
 
     /**
      * Computes and returns the global rankings for all players across all games.
@@ -66,6 +68,7 @@ public class GlobalLeaderboard {
         return globalRanks;
     }
 
+
     /**
      * Computes the rankings for a specific game based on the game's scores.
      *
@@ -87,6 +90,7 @@ public class GlobalLeaderboard {
         }
         return rankings;
     }
+
 
     /**
      * Converts the aggregated and normalised global scores into sequential ranks (e.g., 1st, 2nd, 3rd, etc.).

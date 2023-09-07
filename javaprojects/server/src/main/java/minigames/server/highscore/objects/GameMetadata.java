@@ -1,5 +1,6 @@
 package minigames.server.highscore;
 
+
 /**
  * Represents the metadata associated with a game in the high score system.
  * <p>
@@ -13,8 +14,10 @@ package minigames.server.highscore;
  * </p>
  */
 public class GameMetadata {
+
     private String gameName;        // The name of the game
     private boolean isLowerBetter;  // Flag indicating if a lower score is better for this game
+
 
     /**
      * Constructor to initialise a GameMetadata object with its game name and scoring preference.
@@ -28,9 +31,11 @@ public class GameMetadata {
         this.isLowerBetter = isLowerBetter;
     }
 
+
     // Getters
     public String getGameName() { return gameName; }
     public boolean isLowerBetter() { return isLowerBetter; }
+
 
     // Setters
     public void setGameName(String gameName) { this.gameName = gameName;}

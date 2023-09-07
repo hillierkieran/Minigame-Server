@@ -29,8 +29,8 @@ public class HighScoreAPITests {
     @Test
     @DisplayName("HighScoreAPI retrieves top scores using manager")
     public void testGetTopScores() {
-        api.getTopScores("game1", 10);
-        verify(mockManager).getTopScores("game1", 10);
+        api.getTopScores("game1");
+        verify(mockManager).getTopScores("game1");
     }
 
     @Test

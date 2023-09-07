@@ -1,6 +1,8 @@
 package minigames.server.database;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+
 
 /**
  * Represents a generic database connection interface.
@@ -8,7 +10,8 @@ import java.sql.Connection;
  * to a specific database. Classes implementing this interface can use ANY database
  * system and connection pooling mechanism.
  */
-public interface DatabaseConnection {
+public interface Database extends AutoCloseable{
+
 
     /**
      * Retrieves a database connection for client requests.
@@ -17,7 +20,8 @@ public interface DatabaseConnection {
      *
      * @return An active {@link Connection} object to interact with the database.
      */
-    Connection getConnection();
+    public Connection getConnection();
+
 
     /**
      * Closes the provided database connection.
@@ -28,5 +32,14 @@ public interface DatabaseConnection {
      * @param connection The {@link Connection} object that needs to be closed or returned to the pool.
      * @return true if the connection is closed or returned to the pool successfully, false otherwise.
      */
-    boolean closeConnection(Connection connection);
+    public boolean closeConnection(Connection connection);
+
+
+    /**
+     * Closes the database resources.
+     *
+     * @throws Exception if an error occurs during the closing process.
+     */
+    @Override
+    public void close() throws Exception;
 }

@@ -17,23 +17,29 @@ import java.util.List;
  */
 public interface HighScoreStorage {
 
+
+    /** */
+    public void registerGame(String gameName, Boolean isLowerBetter);
+
+
     /**
      * Stores a new score record into the storage system.
      * 
      * @param record The {@link ScoreRecord} object representing the player's score for a game.
      * @throws HighScoreException if there's any error during the storage operation.
      */
-    void storeScore(ScoreRecord record);
+    public void storeScore(ScoreRecord record);
+
 
     /**
      * Retrieves a list of top scores for a specific game.
      * 
      * @param gameName Name of the game for which top scores are needed.
-     * @param limit The maximum number of top scores to retrieve.
      * @return List of {@link ScoreRecord} objects sorted by scores in descending order.
      * @throws HighScoreException if there's any error during the retrieval operation.
      */
-    List<ScoreRecord> retrieveTopScores(String gameName, int limit);
+    public List<ScoreRecord> retrieveTopScores(String gameName);
+
 
     /**
      * Retrieves the personal best (highest/lowest score depending on the game's scoring system) 
@@ -45,7 +51,8 @@ public interface HighScoreStorage {
      *         Returns null if no score record found for the player for the game.
      * @throws HighScoreException if there's any error during the retrieval operation.
      */
-    ScoreRecord retrievePersonalBest(String playerId, String gameName);
+    public ScoreRecord retrievePersonalBest(String playerId, String gameName);
+
 
     /**
      * Retrieves all scores across all games stored in the system.
@@ -53,7 +60,8 @@ public interface HighScoreStorage {
      * @return List of {@link ScoreRecord} objects representing scores for all players across all games.
      * @throws HighScoreException if there's any error during the retrieval operation.
      */
-    List<ScoreRecord> retrieveAllScores();
+    public List<ScoreRecord> retrieveAllScores();
+
 
     /**
      * Retrieves metadata for a specific game. Metadata includes details like whether 
@@ -63,5 +71,5 @@ public interface HighScoreStorage {
      * @return A {@link GameMetadata} object with details about the game's scoring system.
      * @throws HighScoreException if there's any error during the retrieval operation.
      */
-    GameMetadata getGameMetadata(String gameName);
+    public GameMetadata getGameMetadata(String gameName);
 }

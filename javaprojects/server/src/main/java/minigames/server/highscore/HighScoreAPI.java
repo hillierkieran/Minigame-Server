@@ -1,10 +1,13 @@
 package minigames.server.highscore;
 
+import minigames.server.database.Database;
+import minigames.server.database.DerbyDatabase;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import java.util.List;
 import java.util.Map;
-import minigames.server.database.DerbyDatabase;
 
 
 /**
@@ -37,16 +40,31 @@ public class HighScoreAPI {
     private GlobalLeaderboard globalLeaderboard;    // Global leaderboard logic
     private static final Logger logger = LogManager.getLogger(HighScoreAPI.class);
 
+
+    /**
+     * Default constructor using the pre-defined database type.
+     */
+    public HighScoreAPI() {
+        this(DerbyDatabase.getInstance());
+    }
+
     /**
      * Constructs a new HighScoreAPI using the specified DerbyDatabase as the storage mechanism.
      *
      * @param database The DerbyDatabase used for storing and retrieving scores.
      */
-    public HighScoreAPI(DerbyDatabase database) {
-        this.storage = new DerbyHighScoreStorage(database);
-        this.manager = new HighScoreManager(this.storage);
-        this.globalLeaderboard = new GlobalLeaderboard(this.storage);
+    HighScoreAPI(Database database) {
+        if (database instanceof DerbyDatabase) {
+            storage = new DerbyHighScoreStorage((DerbyDatabase)database);
+        } else {
+            throw new IllegalArgumentException(
+                "Provided database is not supported"
+            );
+        }
+        manager = new HighScoreManager(storage);
+        globalLeaderboard = new GlobalLeaderboard(storage);
     }
+
 
     /**
      * Constructs a new HighScoreAPI using the specified manager and global leaderboard.
@@ -58,10 +76,16 @@ public class HighScoreAPI {
      * Use {@link #HighScoreAPI(DerbyDatabase)} instead
      */
     @Deprecated
-    public HighScoreAPI(HighScoreManager manager, GlobalLeaderboard globalLeaderboard) {
+    HighScoreAPI(HighScoreManager manager, GlobalLeaderboard globalLeaderboard) {
         this.manager = manager;
         this.globalLeaderboard = globalLeaderboard;
     }
+
+
+    public void registerGame(String gameName, Boolean isLowerBetter) {
+        manager.registerGame(gameName, isLowerBetter);
+    }
+
 
     /**
      * Records a new score for a player in a specific game. If the score is better than
@@ -82,6 +106,7 @@ public class HighScoreAPI {
         }
     }
 
+
     /**
      * Retrieves a list of the top scores for a specific game, limited to a specified number.
      *
@@ -90,15 +115,16 @@ public class HighScoreAPI {
      * @return A list of the top scores for the game, sorted in descending order.
      * @throws HighScoreException If an error occurs while retrieving the scores.
      */
-    public List<ScoreRecord> getTopScores(String gameName, int limit) {
+    public List<ScoreRecord> getTopScores(String gameName) {
         try {
-            return manager.getTopScores(gameName, limit);
+            return manager.getTopScores(gameName);
         } catch (HighScoreException ex) {
             logger.error("Failed to retrieve top scores for game {}: {}",
                 gameName, ex.getMessage());
             throw ex;  // Rethrow the exception so that the caller is aware of the failure.
         }
     }
+
 
     /**
      * Retrieves the personal best score of a player for a specific game.
@@ -118,6 +144,7 @@ public class HighScoreAPI {
             throw ex;  // Rethrow the exception so that the caller is aware of the failure.
         }
     }
+
 
     /**
      * Computes and retrieves the global leaderboard, which ranks players based on 

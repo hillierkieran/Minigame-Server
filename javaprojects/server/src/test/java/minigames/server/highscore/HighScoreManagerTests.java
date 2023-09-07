@@ -57,10 +57,10 @@ public class HighScoreManagerTests {
         ScoreRecord record1 = new ScoreRecord("player1", "game1", 10);
         ScoreRecord record2 = new ScoreRecord("player2", "game1", 20);
 
-        when(mockStorage.retrieveTopScores("game1", 2))
+        when(mockStorage.retrieveTopScores("game1"))
             .thenReturn(Arrays.asList(record1, record2));
 
-        List<ScoreRecord> topScores = manager.getTopScores("game1", 2);
+        List<ScoreRecord> topScores = manager.getTopScores("game1");
 
         assertEquals(2, topScores.size());
         assertTrue(topScores.contains(record1));
