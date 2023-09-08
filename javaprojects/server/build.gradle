@@ -17,10 +17,12 @@ dependencies {
     // Enables Jackson Databind for serialisation of basic Java types
     runtimeOnly group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.13.3"
 
-    implementation group: 'org.apache.derby', name: 'derby', version: '10.16.1.1'
-    implementation group: 'org.apache.derby', name: 'derbytools', version: '10.16.1.1'
+    implementation group: 'org.apache.derby', name: 'derby',       version: '10.16.1.1'
+    implementation group: 'org.apache.derby', name: 'derbytools',  version: '10.16.1.1'
     implementation group: 'org.apache.derby', name: 'derbyclient', version: '10.16.1.1'
     implementation group: 'org.apache.derby', name: 'derbyshared', version: '10.16.1.1'
-    implementation group: 'com.zaxxer', name: 'HikariCP', version: '4.0.3'
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.0.1'
+
+    implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 }
 

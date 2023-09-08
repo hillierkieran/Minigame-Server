@@ -2,34 +2,63 @@ package minigames.server.database;
 
 import java.util.List;
 
-
+/**
+ * Represents a generic database table with basic CRUD
+ * (Create, Retrieve, Update, Delete) operations.
+ * Specific implementations for various databases and
+ * table structures can extend this interface.
+ *
+ * @param <T> The type of records stored in the table.
+ */
 public interface DatabaseTable<T> {
 
-
-    // Ensure that the table exists in the database
+    /**
+     * Ensures that the represented table exists in the database.
+     * Typically used to initialize the table on startup or to verify its presence.
+     */
     public void ensureTableExists();
 
-
-    // Create a new record
+    /**
+     * Inserts a new record into the table.
+     *
+     * @param record The record to be created.
+     */
     public void create(T record);
 
-
-    // Update an existing record
+    /**
+     * Updates an existing record in the table.
+     *
+     * @param record The record with updated details.
+     */
     public void update(T record);
 
+    /**
+     * Retrieves a single record from the table based on specific criteria.
+     *
+     * @param record Used to get the criteria or key for the record retrieval.
+     * @return The retrieved record, or null if not found.
+     */
+    public T retrieveOne(T record);
 
-    // Retrieve a single record
-    public T retrieveOne(Object key);
+    /**
+     * Retrieves multiple records from the table based on a given filter or criteria.
+     *
+     * @param filterCriteria The criteria to filter the retrieved records.
+     * @return A list of retrieved records, empty list if none found.
+     */
+    public List<T> retrieveMany(Object filterCriteria);
 
-
-    // Retrieve multiple records based on a criteria
-    public List<T> retrieveMany(Object criteria);
-
-
-    // Retrieve all records
+    /**
+     * Retrieves all records from the table.
+     *
+     * @return A list of all records in the table.
+     */
     public List<T> retrieveAll();
 
-
-    // Delete a record
+    /**
+     * Deletes a specific record from the table.
+     *
+     * @param record The record to be deleted.
+     */
     public void delete(T record);
 }

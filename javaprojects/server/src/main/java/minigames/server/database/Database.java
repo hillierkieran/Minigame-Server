@@ -3,42 +3,31 @@ package minigames.server.database;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-
 /**
- * Represents a generic database connection interface.
- * This interface provides a contract for establishing and closing connections
- * to a specific database. Classes implementing this interface can use ANY database
- * system and connection pooling mechanism.
+ * Represents the main interface for a database, defining common database operations.
  */
 public interface Database extends AutoCloseable{
 
-
     /**
-     * Retrieves a database connection for client requests.
-     * Depending on the implementation, this method might return a new connection
-     * every time or reuse a connection from a pool.
+     * Gets a connection from the connection pool or the database directly.
      *
-     * @return An active {@link Connection} object to interact with the database.
+     * @return a {@link Connection} object for database interaction.
      */
     public Connection getConnection();
 
-
     /**
-     * Closes the provided database connection.
-     * Implementations using connection pooling might not physically close the connection
-     * but might return it to the pool for reuse. Returns true if the operation is successful
-     * and false otherwise.
+     * Closes the provided connection, returning it back to the connection pool
+     * or releasing the resource.
      *
-     * @param connection The {@link Connection} object that needs to be closed or returned to the pool.
-     * @return true if the connection is closed or returned to the pool successfully, false otherwise.
+     * @param connection The {@link Connection} to be closed.
+     * @return true if the connection is successfully closed, false otherwise.
      */
     public boolean closeConnection(Connection connection);
 
-
     /**
-     * Closes the database resources.
+     * Closes any resources related to the database, such as connection pools.
      *
-     * @throws Exception if an error occurs during the closing process.
+     * @throws Exception if any error occurs during the closing process.
      */
     @Override
     public void close() throws Exception;

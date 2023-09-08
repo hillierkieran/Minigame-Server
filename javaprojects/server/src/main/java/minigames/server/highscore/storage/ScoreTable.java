@@ -1,232 +1,185 @@
 package minigames.server.highscore;
 
-import minigames.server.database.Database;
-import minigames.server.database.DatabaseTable;
-import minigames.server.database.DatabaseAccessException;
-import minigames.server.highscore.ScoreRecord;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import minigames.server.database.Database;
+import minigames.server.database.DatabaseAccessException;
+import minigames.server.database.DerbyDatabaseTable;
+import minigames.server.highscore.ScoreRecord;
 
-public class ScoreTable implements DatabaseTable<ScoreRecord> {
 
-    private Database database;
+public class ScoreTable extends DerbyDatabaseTable<ScoreRecord> {
+
+    private static final String TABLE_NAME = "high_score_records";
+    private static final String COLUMN_PLAYER_ID = "player_id";
+    private static final String COLUMN_GAME_NAME = "game_name";
+    private static final String COLUMN_SCORE = "score";
 
 
     public ScoreTable(Database database) {
-        this.database = database;
-        ensureTableExists();
+        super(database, TABLE_NAME);
+    }
+
+
+    // Get column names
+    public String getColumnPlayerId() { return COLUMN_PLAYER_ID; }
+    public String getColumnGameName() { return COLUMN_GAME_NAME; }
+    public String getColumnScore() { return COLUMN_SCORE; }
+
+
+    @Override
+    protected List<Object> getPrimaryKeyValues(ScoreRecord record) {
+        return Arrays.asList(
+            record.getPlayerId(),
+            record.getGameName()
+        );
     }
 
 
     @Override
-    public void ensureTableExists() {
-        try (
-            Connection connection = database.getConnection()
-        ) {
-            ResultSet resultSet = connection.getMetaData().getTables(
-                null, null, "scores", null
-            );
-            if (!resultSet.next()) {
-                // Table does not exist, create it
-                try (
-                    PreparedStatement stmt = connection.prepareStatement(
-                        "CREATE TABLE scores (" +
-                            "playerId VARCHAR(255), " +
-                            "gameName VARCHAR(255) " +
-                                "REFERENCES gameMetadata(gameName) " + // game must exist to record a score for it
-                                "ON DELETE CASCADE, " + // If a game is deleted, so will it's scores
-                            "score INT, " +
-                            "PRIMARY KEY (playerId, gameName)" +
-                        ")"
-                    )
-                ) {
-                    stmt.execute();
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(
-                "Error ensuring scores table exists", e
-            );
-        }
-    } /* ensureTableExists */
+    protected String getTableCreationSQL() {
+        return  (
+            "CREATE TABLE " +
+                TABLE_NAME +
+            " (" +
+                COLUMN_PLAYER_ID + " VARCHAR(255), " +
+                COLUMN_GAME_NAME + " VARCHAR(255) " +
+                    // game must exist to record a score for it
+                    "REFERENCES " + GameTable.getTableName() + "(" +
+                        GameTable.getColumnGameName() +
+                    ") " +
+                    // If a game is deleted, so will it's scores
+                    "ON DELETE CASCADE, " + 
+                COLUMN_SCORE + " INT, " +
+                "PRIMARY KEY (" +
+                    COLUMN_PLAYER_ID + ", " +
+                    COLUMN_GAME_NAME + 
+                ")" +
+            ")"
+        );
+    }
+
+
+    // Create
+    @Override
+    protected String getInsertSQL() {
+        return (
+            "INSERT INTO " + 
+                TABLE_NAME +
+            " (" + 
+                COLUMN_PLAYER_ID + ", " +
+                COLUMN_GAME_NAME + ", " +
+                COLUMN_SCORE +
+            ") VALUES (?, ?, ?)"
+        );
+    }
+    @Override
+    protected List<Object> getInsertValues(ScoreRecord record) {
+        return Arrays.asList(
+            record.getPlayerId(),
+            record.getGameName(),
+            record.getScore()
+        );
+    }
+
+
+    // Update
+    @Override
+    protected String getUpdateSQL() {
+        return (
+            "UPDATE " +
+                TABLE_NAME +
+            " SET " +
+                COLUMN_SCORE + " = ? " +
+            "WHERE " +
+                COLUMN_PLAYER_ID + " = ? AND " +
+                COLUMN_GAME_NAME + " = ?"
+        );
+    }
+    @Override
+    protected List<Object> getUpdateSetValues(ScoreRecord record) {
+        return Arrays.asList(
+            record.getScore()
+        );
+    }
+
+
+    // Retrieve One
+    @Override
+    protected String getRetrieveOneSQL() {
+        return (
+            "SELECT " + 
+                COLUMN_PLAYER_ID + ", " +
+                COLUMN_GAME_NAME + ", " +
+                COLUMN_SCORE +
+            " FROM " + 
+                TABLE_NAME +
+            " WHERE " +
+                COLUMN_PLAYER_ID + " = ? AND " +
+                COLUMN_GAME_NAME + " = ?"
+        );
+    }
+
+
+    // Retrieve Many
+    @Override
+    protected String getRetrieveManySQL() {
+        return (
+            "SELECT " +
+                COLUMN_PLAYER_ID + ", " +
+                COLUMN_GAME_NAME + ", " +
+                COLUMN_SCORE +
+            " FROM " + 
+                TABLE_NAME +
+            " WHERE " + 
+                COLUMN_GAME_NAME + " = ?"
+        );
+    }
+    @Override
+    protected List<Object> getRetrieveManyKeyValues(ScoreRecord record) {
+        return Arrays.asList(
+            record.getGameName()
+        );
+    }
+
+
+    // Retrieve All
+    @Override
+    protected String getRetrieveAllSQL() {
+        return (
+            "SELECT " +
+                COLUMN_PLAYER_ID + ", " +
+                COLUMN_GAME_NAME + ", " +
+                COLUMN_SCORE +
+            " FROM " +
+                TABLE_NAME
+        );
+    }
+
+
+    // Delete
+    @Override
+    protected String getDeleteSQL() {
+        return (
+            "DELETE FROM " + 
+                TABLE_NAME +
+            " WHERE " +
+                COLUMN_PLAYER_ID + " = ? AND " +
+                COLUMN_GAME_NAME + " = ?"
+        );
+    }
 
 
     @Override
-    public void create(ScoreRecord record) {
-        // NOTE: Using a try-with-resources ensures connection closes when block exits
-        try (
-            Connection connection = database.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(
-                "INSERT INTO scores (playerId, gameName, score) " +
-                "VALUES (?, ?, ?)"
-            )
-        ) {
-            preparedStatement.setString(1, record.getPlayerId());
-            preparedStatement.setString(2, record.getGameName());
-            preparedStatement.setInt(3, record.getScore());
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            // Check for foreign key constraint violation.
-            // In this case, attempting to set a score for a non-existant game.
-            // 23xxx is the SQL state code for integrity constraint violations.
-            if (e.getSQLState().startsWith("23")) {
-                throw new DatabaseAccessException(
-                    "Error: Score insertion failed as the game " + 
-                    record.getGameName() + 
-                    " does not exist.", e
-                );
-            } else {
-                throw new DatabaseAccessException(
-                    "Error storing score.", e
-                );
-            }
-        }
-    } /* create */
-
-
-    @Override
-    public void update(ScoreRecord record) {
-        // Assuming playerId and gameName together can uniquely identify a score record.
-        try (
-            Connection connection = database.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(
-                "UPDATE scores " +
-                "SET score = ? " +
-                "WHERE playerId = ? AND gameName = ?"
-            )
-        ) {
-            preparedStatement.setInt(1, record.getScore());
-            preparedStatement.setString(2, record.getPlayerId());
-            preparedStatement.setString(3, record.getGameName());
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DatabaseAccessException(
-                "Error updating score for playerId: " + record.getPlayerId(), e
-            );
-        }
-    } /* update */
-
-
-    /**
-     * Retrieves a ScoreRecord based on the playerId and gameName fields of the provided ScoreRecord.
-     * The score field of the provided ScoreRecord is ignored.
-     *
-     * @param key A ScoreRecord containing the playerId and gameName to search for.
-     * @return The matching ScoreRecord, or null if no match is found.
-     */
-    @Override
-    public ScoreRecord retrieveOne(Object key) {
-        String playerId = ((ScoreRecord) key).getPlayerId();
-        String gameName = ((ScoreRecord) key).getGameName();
-        ScoreRecord record = null;
-        try (
-            Connection connection = database.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT playerId, gameName, score " +
-                "FROM scores " +
-                "WHERE playerId = ? AND gameName = ?"
-            )
-        ) {
-            preparedStatement.setString(1, playerId);
-            preparedStatement.setString(2, gameName);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                record = new ScoreRecord(
-                    resultSet.getString(playerId),
-                    resultSet.getString(gameName),
-                    resultSet.getInt("score")
-                );
-            }
-        } catch (SQLException e) {
-            throw new DatabaseAccessException(
-                "Error retrieving score for playerId: " + playerId +
-                " and gameName: " + gameName, e
-            );
-        }
-        return record;
-    } /* retrieveOne */
-
-
-    @Override
-    public List<ScoreRecord> retrieveMany(Object criteria) {
-        String gameName = (String) criteria;
-        List<ScoreRecord> scores = new ArrayList<>();
-        try (
-            Connection connection = database.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT playerId, gameName, score " +
-                "FROM scores " +
-                "WHERE gameName = ?"
-            )
-        ) {
-            preparedStatement.setString(1, gameName);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                scores.add(new ScoreRecord(
-                    resultSet.getString("playerId"),
-                    resultSet.getString("gameName"),
-                    resultSet.getInt("score")
-                ));
-            }
-        } catch (SQLException e) {
-            throw new DatabaseAccessException(
-                "Error retrieving scores for game: " + gameName, e
-            );
-        }
-        return scores;
-    } /* retrieveMany */
-
-
-
-    public List<ScoreRecord> retrieveAll() {
-        List<ScoreRecord> scores = new ArrayList<>();
-        try (
-            Connection connection = database.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT playerId, gameName, score " +
-                "FROM scores"
-            )
-        ) {
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                scores.add(new ScoreRecord(
-                    resultSet.getString("playerId"),
-                    resultSet.getString("gameName"),
-                    resultSet.getInt("score")
-                ));
-            }
-        } catch (SQLException e) {
-            throw new DatabaseAccessException(
-                "Error retrieving all scores.", e
-                );
-        }
-        return scores;
-    } /* retrieveAll */
-
-
-    @Override
-    public void delete(ScoreRecord record) {
-        try (
-            Connection connection = database.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(
-                "DELETE FROM scores " +
-                "WHERE playerId = ? AND gameName = ?"
-            )
-        ) {
-            preparedStatement.setString(1, record.getPlayerId());
-            preparedStatement.setString(2, record.getGameName());
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DatabaseAccessException(
-                "Error deleting score for playerId: " + record.getPlayerId(), e
-            );
-        }
-    } /* delete */
+    protected ScoreRecord mapResultSetToEntity(ResultSet rs) throws SQLException {
+        return new ScoreRecord(
+            rs.getString(COLUMN_PLAYER_ID),
+            rs.getString(COLUMN_GAME_NAME),
+            rs.getInt(COLUMN_SCORE)
+        );
+    }
 }

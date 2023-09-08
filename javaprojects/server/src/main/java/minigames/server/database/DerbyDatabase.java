@@ -22,19 +22,14 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import minigames.server.database.Database;
 import minigames.server.database.DatabaseAccessException;
+import minigames.server.database.DatabaseInitialisationException;
+import minigames.server.database.DatabaseShutdownException;
 
 
 /**
- * Manages database connections for the Derby Database using the HikariCP connection pool.
- * <p>
- * This class initialises a connection pool for the Derby Database, which can then be used to fetch and release
- * database connections efficiently. The configuration properties for this class are fetched from 
- * the {@code DerbyDatabase.properties} file.
- * </p>
- * <p>
- * Example implementation can be found in the {@code HighScoreAPI} class.
- * </p>
- * 
+ * This class provides a Singleton implementation of a Derby database using HikariCP for connection pooling.
+ * The database is initialized and shut down gracefully when the application is started or closed.
+ *
  * @author Kieran Hillier (Group: Merge Mavericks)
  */
 public class DerbyDatabase implements Database {
@@ -50,14 +45,21 @@ public class DerbyDatabase implements Database {
     private boolean isTest = false;
 
 
-    // Synchronized method to control simultaneous access
+    /**
+     * Retrieves the Singleton instance of DerbyDatabase. 
+     * If the database has not been instantiated or has been closed,
+     * it initialises a new instance.
+     *
+     * @return the single instance of DerbyDatabase.
+     */
     public static DerbyDatabase getInstance() {
-        // First check (without locking) to improve performance
+        // First check (without locking)
         if (instance == null || instance.isClosed()) {
             synchronized (DerbyDatabase.class) {
                 // Second (double) check within the synchronized block
+                // ie. only let one thread in this block at a time
                 if (instance == null || instance.isClosed()) {
-                    instance = new DerbyDatabase();
+                    instance = new DerbyDatabase(DEFAULT_PROP_FILE_NAME);
                 }
             }
         }
@@ -66,14 +68,29 @@ public class DerbyDatabase implements Database {
 
 
     /**
-     * Initializes the database connection pool upon instantiation.
+     * Constructor that accepts a database properties file.
+     * 
+     * @param propFileName the properties to be used to initialise the connection pool
      */
-    private DerbyDatabase() {
-        this(DEFAULT_PROP_FILE_NAME);
+    protected DerbyDatabase(String propFileName) {
+        // Determine if this is a test
+        isTest = !propFileName.equals(DEFAULT_PROP_FILE_NAME);
+        this.propFileName = propFileName;
+        // Setup database
+        try {
+            initialiseConnectionPool();
+        } catch(Exception e) {
+            logger.error("Error initialising database connection pool.", e);
+            throw new RuntimeException("Failed to initialise database connection pool.", e);
+        }
+        // Register a shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
+        // Indicate that database is running
+        closed = false;
     }
 
 
-    // for testing only
+    // Constructor used for testing purposes, allowing for a mock data source.
     protected DerbyDatabase(HikariDataSource mockDataSource) {
         isTest = true;
         this.dataSource = mockDataSource;
@@ -83,47 +100,51 @@ public class DerbyDatabase implements Database {
     }
 
 
-    /**
-     * Constructor that accepts a database properties file.
-     * This is primarily designed for testing.
-     * 
-     * @param propFileName the properties to be used to initialise the connection pool
-     */
-    protected DerbyDatabase(String propFileName) {
-        isTest = !propFileName.equals(DEFAULT_PROP_FILE_NAME);
-        this.propFileName = propFileName;
-
-        try {
-            initialiseConnectionPool();
-        } catch(Exception e) {
-            logger.error("Error initialising database connection pool.", e);
-            throw new RuntimeException("Failed to initialise database connection pool.", e);
-        }
-
-        // Register a shutdown hook
-        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
-
-        closed = false;
-    }
-
-
-    // Mainly used for testing
+    // Getters mainly used for testing
     String getPropFileName() { return propFileName; }
     String getDefaultPropFileName() { return DEFAULT_PROP_FILE_NAME; }
     HikariDataSource getDataSource() { return dataSource; }
+
+    // Get state of database
     public boolean isClosed() { return closed; }
 
 
+    // Load the embedded Derby JDBC driver.
+    private void loadDerbyEmbeddedDriver() {
+        try {
+            // Ensure the Derby embedded driver is loaded
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
+        } catch (ClassNotFoundException e) {
+            // Handle the ClassNotFoundException
+            logger.error("Derby JDBC EmbeddedDriver class not found", e);
+            throw new DatabaseInitialisationException("Derby JDBC EmbeddedDriver class not found.", e);
+        } catch (InstantiationException e) {
+            // Handle the InstantiationException
+            logger.error("Failed to instantiate Derby JDBC EmbeddedDriver", e);
+            throw new DatabaseInitialisationException("Failed to instantiate Derby JDBC EmbeddedDriver.", e);
+        } catch (IllegalAccessException e) {
+            // Handle the IllegalAccessException
+            logger.error("Illegal access while trying to instantiate Derby JDBC EmbeddedDriver", e);
+            throw new DatabaseInitialisationException("Illegal access while trying to instantiate Derby JDBC EmbeddedDriver.", e);
+        }
+    }
+
+
     /**
-     * Initialises the HikariCP connection pool with properties fetched from {@code DerbyDatabase.properties}.
-     *
-     * @throws IOException if properties file is not found or fails to load.
-     * @throws SQLException if any error occurs during connection pool initialisation.
+     * Initialises the connection pool by loading the embedded Derby driver, 
+     * setting HikariCP configuration, and establishing the pool.
      */
     private void initialiseConnectionPool() throws IOException, SQLException {
+        // Load the embedded Derby JDBC driver.
+        try {
+            loadDerbyEmbeddedDriver();
+        } catch (DatabaseInitialisationException e) {
+            logger.error("Failed to load Derby EmbeddedDriver", e);
+            throw new DatabaseInitialisationException("Failed to load Derby EmbeddedDriver", e);
+        }
         HikariConfig config = new HikariConfig();
         Properties properties = loadDatabaseProperties();
-
+        // Determine where to locate/setup the database
         try {
             if (isTest) {
                 config.setJdbcUrl(properties.getProperty("db.jdbcUrl"));
@@ -134,98 +155,77 @@ public class DerbyDatabase implements Database {
             logger.error("Error occurred while fetching the database location.", e);
             throw new IOException("Failed to determine database location.", e);
         }
-        //config.setDriverClassName(properties.getProperty("db.driverClass"));
+        // Set connection pool parameters from properties file
         config.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
+        //config.setDriverClassName(properties.getProperty("db.driverClass"));
+        logger.debug(config.getDataSourceClassName());
         config.setMaximumPoolSize(Integer.parseInt(properties.getProperty("hikari.maxPoolSize")));
         config.setMinimumIdle(Integer.parseInt(properties.getProperty("hikari.minIdle")));
         config.setIdleTimeout(Long.parseLong(properties.getProperty("hikari.idleTimeout")));
         config.setConnectionTimeout(Long.parseLong(properties.getProperty("hikari.connectionTimeout")));
         config.setValidationTimeout(Long.parseLong(properties.getProperty("hikari.validationTimeout")));
         config.setConnectionTestQuery(properties.getProperty("hikari.connectionTestQuery"));
-
         // Close any previous dataSource
         disconnect();
-
+        // Initialise the connection pool
         dataSource = new HikariDataSource(config);
     } /* initialiseConnectionPool */
 
 
-    /**
-     * Loads database properties from {@code DerbyDatabase.properties}.
-     *
-     * @return Properties object containing database connection details.
-     * @throws IOException if properties file is not found or fails to load.
-     */
+    // Loads database properties from properties file
     private Properties loadDatabaseProperties() throws IOException {
+        // Try to fetch properties file
         Properties properties = new Properties();
         try (
             InputStream input = DerbyDatabase.class
                 .getClassLoader().getResourceAsStream(propFileName)
         ) {
+            // Check if found
             if (input == null) {
-                // If the properties file is not found,
-                // log the error and then throw an exception
+                // Not found. Log the error and throw an exception
                 logger.error("Unable to find {}", propFileName);
-
-                // List all resources available to the classloader
-                Enumeration<URL> resources = DerbyDatabase.class
-                    .getClassLoader().getResources("");
-                logger.info("Listing available resources:");
-                while (resources.hasMoreElements()) {
-                    logger.info("Resource: {}",
-                    resources.nextElement().toString());
-                }
-
-                // Provide the path where the JVM expects to find the file
-                URL expectedLocation = DerbyDatabase.class
-                    .getResource(propFileName);
-                logger.info(
-                    "Expected location (may be null if not found): {}",
-                    expectedLocation
-                );
-
-                throw new FileNotFoundException(
-                    "Unable to find " + propFileName
+                throw new DatabaseInitialisationException(
+                    "Failed to locate " + propFileName +
+                    " file for database configuration."
                 );
             }
-            // Load properties from the input stream
+            // Found. Load properties from the input stream
             properties.load(input);
         }
         return properties;
     } /* loadDatabaseProperties */
 
 
-    /**
-     * Derives the database location from the location of {@code DerbyDatabase.properties} in resources directory
-     *
-     * @return the JDBC URL for the Derby Database.
-     * @throws Exception if the URI of the properties file cannot be resolved.
-     */
+
+    // Derive the database location by leveraging the location of properties file
     private String getDatabaseLocation() throws IOException, URISyntaxException {
         try {
-            // Derive the path location of the properties file
+            // Derive and copy the path location of the properties file
             Path propFilePath = Paths.get(DerbyDatabase.class.getClassLoader().getResource(propFileName).toURI());
-            // Get the parent directory of the properties file
             Path propDirPath = propFilePath.getParent();
-            // Use resolve to combine the path with the sub-directory 
             Path dbPath = propDirPath.resolve("derbyDatabase");
-            // Convert path to a uniform string representation
             String dbLocation = dbPath.toAbsolutePath().toString();
-            // Replace any backslashes (from Windows paths) with forward slashes to keep the JDBC URL format consistent
+            // Replace any Windows backslashes to keep the JDBC URL format consistent
             dbLocation = dbLocation.replace("\\", "/");
             // Return the JDBC connection string for the Derby database
             return "jdbc:derby:" + dbLocation + ";create=true";
         } catch (NullPointerException e) {
-            throw new IOException("Error fetching the properties file.", e);
+            // Failed to find the properties file
+            throw new DatabaseInitialisationException(
+                "Unable to determine the location of the database " +
+                "based on the properties file location.", e
+            );
         }
     }
 
 
     /**
-     * Retrieves a database connection from the connection pool.
+     * Establishes a connection to the database using the connection pool.
+     * If the connection fails, it attempts to close the connection
+     * and throws a DatabaseAccessException.
      *
-     * @return A database connection.
-     * @throws RuntimeException If an error occurs while fetching a connection.
+     * @return an active Connection to the database.
+     * @throws DatabaseAccessException if there's an error fetching the connection.
      */
     @Override
     public Connection getConnection() {
@@ -246,7 +246,8 @@ public class DerbyDatabase implements Database {
             }
             logger.error("Error fetching connection from pool.", e);
             throw new DatabaseAccessException(
-                "Error fetching connection from pool.", e
+                "Failed to obtain a connection from the connection pool. " +
+                "The database might be unavailable or overburdened.", e
             );
         }
     }
@@ -255,8 +256,9 @@ public class DerbyDatabase implements Database {
     /**
      * Closes the provided database connection, returning it to the pool.
      *
-     * @param connection The connection to close.
-     * @return {@code true} if successful, {@code false} otherwise.
+     * @param connection The connection to be closed.
+     * @return true if the connection was closed successfully, false otherwise.
+     * @throws DatabaseAccessException if there's an error closing the connection.
      */
     @Override
     public boolean closeConnection(Connection connection) {
@@ -269,7 +271,9 @@ public class DerbyDatabase implements Database {
                 // If there's an error during connection closure, log it
                 logger.error("Error closing connection.", e);
                 throw new DatabaseAccessException(
-                    "Failed to close the database connection.", e
+                    "Failed to return the connection back to the pool. " +
+                    "The connection might have already been closed " +
+                    "or become unresponsive.", e
                 );
             }
         }
@@ -278,7 +282,8 @@ public class DerbyDatabase implements Database {
 
 
     /**
-     * Releases ALL database connections from the pool.
+     * Disconnects the data source by closing the connection pool,
+     * releasing all connections.
      */
     public void disconnect() {
         if (dataSource != null && !dataSource.isClosed()) {
@@ -289,11 +294,9 @@ public class DerbyDatabase implements Database {
 
 
     /**
-     * Gracefully shuts down the Derby database after releasing all pooled connections.
-     * <p>
-     * Ensures that active connections are closed and the database engine terminates 
-     * properly to prevent potential resource leaks or database corruption.
-     * </p>
+     * Shuts down the Derby database and ensures all resources are released.
+     * 
+     * @throws DatabaseShutdownException if there's an error during the shutdown process.
      */
     public synchronized void shutdown() {
         if (closed) {
@@ -301,7 +304,7 @@ public class DerbyDatabase implements Database {
         }
         disconnect();
         try (
-            Connection ignored = DriverManager.getConnection("jdbc:derby:;shutdown=true")
+            Connection ignored = DriverManager.getConnection("jdbc:derby:;shutdown=true;deregister=false")
         ) {
             // Intentionally left empty
         } catch (SQLException se) {
@@ -311,8 +314,9 @@ public class DerbyDatabase implements Database {
                 logger.info("Derby shut down normally");
             } else {
                 logger.error("Derby did not shut down normally", se);
-                throw new DatabaseAccessException(
-                    "Failed to shut down the Derby database normally.", se
+                throw new DatabaseShutdownException(
+                    "The Derby database failed to shut down gracefully. " +
+                    "This might lead to potential data corruption or resource leaks.", se
                 );
             }
         } finally {
@@ -321,11 +325,16 @@ public class DerbyDatabase implements Database {
     }
 
 
+    /**
+     * Closes the Derby database, an alias for the shutdown method.
+     * 
+     * @throws SQLException if there's an error during the shutdown process.
+     */
     @Override
     public void close() throws SQLException {
         try {
             shutdown();
-        } catch (DatabaseAccessException dae) {
+        } catch (DatabaseShutdownException dae) {
             throw new SQLException(
                 "Failed during Derby database shutdown.", dae
             );

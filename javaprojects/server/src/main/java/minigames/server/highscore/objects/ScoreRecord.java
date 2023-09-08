@@ -58,10 +58,6 @@ public class ScoreRecord {
      */
     @Override
     public String toString() {
-        return "ScoreRecord{" +
-                "playerId='" + playerId + '\'' +
-                ", gameName='" + gameName + '\'' +
-                ", score=" + score +
-                '}';
+        return "ScoreRecord{" + "playerId=" + playerId + ", gameName='" + gameName + ", score=" + score + '}';
     }
 }
