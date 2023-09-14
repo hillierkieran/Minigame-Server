@@ -49,7 +49,7 @@ public class DerbyDatabaseIntegrationTests {
         testDatabase = new DerbyDatabase(TEST_DB_PROPERTIES);
         testTable = new ExampleTable(testDatabase, TEST_TABLE_NAME);
         if (testTable.tableExists()) {
-            testTable().destroyTable();
+            testTable.destroyTable();
         }
         testTable.createTable();
     }
