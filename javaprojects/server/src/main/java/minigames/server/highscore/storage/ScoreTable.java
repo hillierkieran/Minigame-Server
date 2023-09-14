@@ -6,22 +6,22 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-import minigames.server.database.Database;
-import minigames.server.database.DatabaseAccessException;
-import minigames.server.database.DerbyDatabaseTable;
-import minigames.server.highscore.ScoreRecord;
+import minigames.server.database.*;
 
 
-public class ScoreTable extends DerbyDatabaseTable<ScoreRecord> {
+public class ScoreTable extends DatabaseTable<ScoreRecord> {
 
     private static final String TABLE_NAME = "high_score_records";
     private static final String COLUMN_PLAYER_ID = "player_id";
     private static final String COLUMN_GAME_NAME = "game_name";
     private static final String COLUMN_SCORE = "score";
 
+    private GameTable gameTable;
 
-    public ScoreTable(Database database) {
+
+    public ScoreTable(Database database, DatabaseTable referencedTable) {
         super(database, TABLE_NAME);
+        this.gameTable = (GameTable) referencedTable;
     }
 
 
@@ -49,8 +49,8 @@ public class ScoreTable extends DerbyDatabaseTable<ScoreRecord> {
                 COLUMN_PLAYER_ID + " VARCHAR(255), " +
                 COLUMN_GAME_NAME + " VARCHAR(255) " +
                     // game must exist to record a score for it
-                    "REFERENCES " + GameTable.getTableName() + "(" +
-                        GameTable.getColumnGameName() +
+                    "REFERENCES " + gameTable.getTableName() + " (" +
+                        gameTable.getColumnGameName() +
                     ") " +
                     // If a game is deleted, so will it's scores
                     "ON DELETE CASCADE, " + 
@@ -140,9 +140,9 @@ public class ScoreTable extends DerbyDatabaseTable<ScoreRecord> {
         );
     }
     @Override
-    protected List<Object> getRetrieveManyKeyValues(ScoreRecord record) {
+    protected List<Object> getRetrieveManyKeyValues(Object record) {
         return Arrays.asList(
-            record.getGameName()
+            ((ScoreRecord) record).getGameName()
         );
     }
 

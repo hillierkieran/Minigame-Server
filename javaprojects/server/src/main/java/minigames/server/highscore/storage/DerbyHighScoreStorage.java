@@ -1,16 +1,19 @@
 package minigames.server.highscore;
 
-import minigames.server.database.DatabaseTable;
-import minigames.server.database.DerbyDatabase;
-import minigames.server.highscore.GameMetadata;
-import minigames.server.highscore.ScoreRecord;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import minigames.server.database.DatabaseTable;
+import minigames.server.database.DatabaseShutdownException;
+import minigames.server.database.DerbyDatabase;
+
+import minigames.server.highscore.GameMetadata;
+import minigames.server.highscore.ScoreRecord;
 
 
 /**
@@ -41,7 +44,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
         }
         this.database = database;
         games = new GameTable(this.database);
-        scores = new ScoreTable(this.database);
+        scores = new ScoreTable(this.database, games);
     }
 
 
@@ -119,13 +122,5 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
     @Override
     public GameMetadata getGameMetadata(String gameName) {
         return (GameMetadata) games.retrieveOne((Object) gameName);
-    }
-
-
-    /**
-     * Closes and disconnects the database.
-     */
-    public void close() {
-        database.shutdown();
     }
 }

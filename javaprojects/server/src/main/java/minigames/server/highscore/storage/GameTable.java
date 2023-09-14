@@ -6,13 +6,10 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-import minigames.server.database.Database;
-import minigames.server.database.DatabaseAccessException;
-import minigames.server.database.DerbyDatabaseTable;
-import minigames.server.highscore.GameMetadata;
+import minigames.server.database.*;
 
 
-public class GameTable extends DerbyDatabaseTable<GameMetadata> {
+public class GameTable extends DatabaseTable<GameMetadata> {
 
     private static final String TABLE_NAME = "high_score_game_metadata";
     private static final String COLUMN_GAME_NAME = "game_name";
@@ -109,7 +106,7 @@ public class GameTable extends DerbyDatabaseTable<GameMetadata> {
         return getRetrieveAllSQL();
     }
     @Override
-    protected List<Object> getRetrieveManyKeyValues(GameMetadata record) {
+    protected List<Object> getRetrieveManyKeyValues(Object filterCriteria) {
         return null;
     }
 

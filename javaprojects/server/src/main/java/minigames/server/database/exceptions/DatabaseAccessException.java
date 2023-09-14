@@ -2,12 +2,14 @@ package minigames.server.database;
 
 import java.sql.SQLException;
 
+
 /**
  * This exception is thrown when there is an access issue with the database.
  * It wraps around standard exceptions like SQLException
  * to provide more specific error messages.
  */
 public class DatabaseAccessException extends RuntimeException {
+
 
     /**
      * Constructs a new DatabaseAccessException with the specified message.
@@ -17,6 +19,7 @@ public class DatabaseAccessException extends RuntimeException {
     public DatabaseAccessException(String message) {
         super(message);
     }
+
 
     /**
      * Constructs a new DatabaseAccessException with the specified message and cause.
@@ -32,6 +35,7 @@ public class DatabaseAccessException extends RuntimeException {
             cause
         );
     }
+
 
     /**
      * Builds a detailed error message using the given message and SQLException details.

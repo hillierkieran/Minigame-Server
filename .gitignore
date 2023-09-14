@@ -5,6 +5,12 @@
 #
 # Note, however, we might find ourselves adding some more during term.
 
+# Derby database binary files
+derbyDatabase/
+testDb_temporary/
+.dat
+.ctrl
+
 # Gradle generated files
 .gradle/
 build/

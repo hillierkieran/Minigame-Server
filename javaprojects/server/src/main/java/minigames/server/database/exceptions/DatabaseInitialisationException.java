@@ -1,9 +1,11 @@
 package minigames.server.database;
 
+
 /**
  * This exception is thrown when there is an issue during database initialisation.
  */
 public class DatabaseInitialisationException extends Exception {
+
 
     /**
      * Constructs a new DatabaseInitialisationException with the specified message.
@@ -13,6 +15,7 @@ public class DatabaseInitialisationException extends Exception {
     public DatabaseInitialisationException(String message) {
         super(message);
     }
+
 
     /**
      * Constructs a new DatabaseInitialisationException with the specified message and cause.

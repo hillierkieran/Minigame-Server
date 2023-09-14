@@ -1,19 +1,129 @@
 package minigames.server.database;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import minigames.server.utilities.Utilities;
+
+
 /**
- * Represents the main interface for a database, defining common database operations.
+ * Represents the main abstract class for a database, defining common database operations.
+ *
+ * @author Kieran Hillier (Group: Merge Mavericks)
  */
-public interface Database extends AutoCloseable{
+public abstract class Database implements AutoCloseable{
+
+    private static final String TEST_ENV = "testEnv";
+    protected final Logger logger = LogManager.getLogger(this.getClass());
+
+    protected volatile boolean closed = true;
+    protected volatile boolean isTest = false;
+
+    protected String propFileName;
+    protected String databaseName;
+    protected final List<DatabaseTable<?>> registeredTables = new CopyOnWriteArrayList<>();
+
+    public Database() {
+        this(null);
+    }
+
+    public Database(String propFileName) {
+        this.propFileName = propFileName;
+        isTest = "true".equals(System.getProperty(TEST_ENV));
+    }
+
+
+    // Getters
+    public String getPropFileName() { return propFileName; }
+    public boolean isClosed() { return closed; }
+    public boolean isTest() { return isTest; }
+    public List<DatabaseTable<?>> getRegisteredTables() {
+        return new ArrayList<>(registeredTables); // return a copy
+    }
+
+
+    /**
+     * Check if a table is in table registry.
+     * 
+     * @param table The table to check.
+     */
+    public synchronized boolean isTableRegistered(DatabaseTable<?> table) {
+        return registeredTables.contains(table);
+    }
+
+    /**
+     * Register a table for backup on shutdown, tracking and batch operations.
+     * 
+     * @param table The table to register.
+     */
+    public synchronized void registerTable(DatabaseTable<?> table) {
+        registeredTables.add(table);
+    }
+
+    /**
+     * Unregister (remove) a table from table registry.
+     * 
+     * @param table The table to unregister.
+     */
+    public synchronized void unregisterTable(DatabaseTable<?> table) {
+        if (registeredTables.contains(table)) {
+            registeredTables.remove(table);
+        }
+    }
+
+    // TESTING ONLY - Remove all test tables from the registry
+    synchronized void removeAllRegisteredTestTables() {
+        if (isTest) {
+            for (DatabaseTable<?> table : registeredTables) {
+                if (table.getTableName().toLowerCase().contains("test")) {
+                    registeredTables.remove(table);
+                }
+            }
+        }
+    }
+
+    // TESTING ONLY - Drop all test tables from the registry
+    synchronized void destroyAllRegisteredTestTables() {
+        if (isTest) {
+            for (DatabaseTable<?> table : registeredTables) {
+                if (table.getTableName().toLowerCase().contains("test")) {
+                    table.destroyTable();
+                }
+            }
+        }
+    }
+
 
     /**
      * Gets a connection from the connection pool or the database directly.
      *
      * @return a {@link Connection} object for database interaction.
      */
-    public Connection getConnection();
+    public abstract Connection getConnection();
+
 
     /**
      * Closes the provided connection, returning it back to the connection pool
@@ -22,13 +132,14 @@ public interface Database extends AutoCloseable{
      * @param connection The {@link Connection} to be closed.
      * @return true if the connection is successfully closed, false otherwise.
      */
-    public boolean closeConnection(Connection connection);
+    public abstract boolean closeConnection(Connection connection);
+
 
     /**
-     * Closes any resources related to the database, such as connection pools.
-     *
-     * @throws Exception if any error occurs during the closing process.
+     * Closes the database
+     * 
+     * @throws SQLException if there's an error during the shutdown process.
      */
     @Override
-    public void close() throws Exception;
+    public abstract void close() throws SQLException;
 }
