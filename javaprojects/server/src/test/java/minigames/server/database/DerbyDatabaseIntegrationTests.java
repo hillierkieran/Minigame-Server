@@ -274,15 +274,15 @@ public class DerbyDatabaseIntegrationTests {
         try (Connection connection = testDatabase.getConnection()) {
             // Get table column structure
             ResultSet columns = connection.getMetaData()
-                .getColumns(null, null, testTable.getTableName(), null);
+                .getColumns(null, null, testTable.getTableName().toUpperCase(), null);
             List<String> columnNames = new ArrayList<>();
             while (columns.next()) {
                 columnNames.add(columns.getString("COLUMN_NAME"));
             }
             // Check table column structure
             List<String> expectedColumns = List.of(
-                testTable.getColumnExample1(),
-                testTable.getColumnExample2()
+                testTable.getColumnExample1().toUpperCase(),
+                testTable.getColumnExample2().toUpperCase()
             );
             logger.info("expected columns: " + columnsToString(expectedColumns));
             logger.info("retrieved columns: " + columnsToString(columnNames));
