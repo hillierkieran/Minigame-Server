@@ -370,7 +370,7 @@ public class DerbyDatabaseIntegrationTests {
             threads.submit(() -> {
                 try {
                     startLatch.await(); // wait for the start signal
-                    testTable.create(new ExampleRecord());
+                    testTable.create(new ExampleRecord("identical keys", 123));
                     outcomes.add(true); // true indicates a successful insertion
                 } catch (DatabaseAccessException dae) {
                     outcomes.add(false); // false indicates a failed insertion
