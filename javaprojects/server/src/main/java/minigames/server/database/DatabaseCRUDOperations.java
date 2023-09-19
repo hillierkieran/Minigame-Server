@@ -35,10 +35,10 @@ public interface DatabaseCRUDOperations<T> {
     /**
      * Retrieves a single record from the table based on specific criteria.
      *
-     * @param record Used to get the criteria or key for the record retrieval.
+     * @param filterCriteria The criteria to filter the retrieved record.
      * @return The retrieved record, or null if not found.
      */
-    public T retrieveOne(T record);
+    public T retrieveOne(Object filterCriteria);
 
 
     /**

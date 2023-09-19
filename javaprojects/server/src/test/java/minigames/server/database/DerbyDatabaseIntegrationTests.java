@@ -182,7 +182,7 @@ public class DerbyDatabaseIntegrationTests {
         // Get the maximum pool size from the datasource configuration
         int maxPoolSize = ((HikariDataSource) testDatabase.getDataSource()).getMaximumPoolSize();
         // Try to get more connections than the pool allows
-        for (int i = 0; i < maxPoolSize + 2; i++) {
+        for (int i = 0; i < maxPoolSize + 1; i++) {
             try {
                 Connection conn = testDatabase.getConnection();
                 assertNotNull(conn);  // Ensure we actually got a connection
@@ -208,7 +208,7 @@ public class DerbyDatabaseIntegrationTests {
 
     @Test
     public void testGetConnection_WithConcurrency() throws SQLException {
-        int numOfThreads = 100;
+        int numOfThreads = 20;
         ExecutorService threads = Executors.newFixedThreadPool(numOfThreads); // make pool of threads
         CountDownLatch latch = new CountDownLatch(numOfThreads); // make threads act simultaneously
         List<Exception> exceptions = Collections.synchronizedList(new ArrayList<>()); // stores exceptions

@@ -37,6 +37,7 @@ import minigames.server.utilities.Utilities;
 public abstract class Database implements AutoCloseable{
 
     private static final String TEST_ENV = "testEnv";
+    private static final String SYS_PROP = "config.properties";
     protected final Logger logger = LogManager.getLogger(this.getClass());
 
     protected volatile boolean closed = true;
@@ -46,11 +47,11 @@ public abstract class Database implements AutoCloseable{
     protected String databaseName;
     protected final List<DatabaseTable<?>> registeredTables = new CopyOnWriteArrayList<>();
 
-    public Database() {
+    protected Database() {
         this(null);
     }
 
-    public Database(String propFileName) {
+    protected Database(String propFileName) {
         this.propFileName = propFileName;
         isTest = "true".equals(System.getProperty(TEST_ENV));
     }
@@ -62,6 +63,27 @@ public abstract class Database implements AutoCloseable{
     public boolean isTest() { return isTest; }
     public List<DatabaseTable<?>> getRegisteredTables() {
         return new ArrayList<>(registeredTables); // return a copy
+    }
+
+
+    /**
+     * Fetches the default database instance based on the system specified in the properties file.
+     * 
+     * @return Database instance of the system specified in the configuration.
+     * @throws UnsupportedOperationException if the specified database system is not supported.
+     */
+    public static Database getInstance() {
+        Properties properties = Utilities.getProperties(SYS_PROP);
+        String dbSystem = properties.getProperty("database.system");
+        switch (dbSystem) {
+            case "Derby":
+                return DerbyDatabase.getInstance();
+            // TODO: Add more cases as more database systems are added
+            default:
+                throw new UnsupportedOperationException(
+                    "Database system not supported: " + dbSystem
+                );
+        }
     }
 
 

@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * HighScoreStorage Interface.
  * <p>
- * Defines methods that any storage mechanism must implement to store and retrieve high scores.
+ * Defines methods that any storage mechanism must implement to store and get high scores.
  * This allows for flexibility in choosing different storage mechanisms while ensuring 
  * a consistent way to interact with the high score data.
  * </p>
@@ -18,8 +18,10 @@ import java.util.List;
 public interface HighScoreStorage {
 
 
-    /** */
     public void registerGame(String gameName, Boolean isLowerBetter);
+
+
+    public boolean isGameRegistered(String gameName);
 
 
     /**
@@ -28,17 +30,7 @@ public interface HighScoreStorage {
      * @param record The {@link ScoreRecord} object representing the player's score for a game.
      * @throws HighScoreException if there's any error during the storage operation.
      */
-    public void storeScore(ScoreRecord record);
-
-
-    /**
-     * Retrieves a list of top scores for a specific game.
-     * 
-     * @param gameName Name of the game for which top scores are needed.
-     * @return List of {@link ScoreRecord} objects sorted by scores in descending order.
-     * @throws HighScoreException if there's any error during the retrieval operation.
-     */
-    public List<ScoreRecord> retrieveTopScores(String gameName);
+    public void storeScore(String playerId, String gameName, int score);
 
 
     /**
@@ -51,7 +43,17 @@ public interface HighScoreStorage {
      *         Returns null if no score record found for the player for the game.
      * @throws HighScoreException if there's any error during the retrieval operation.
      */
-    public ScoreRecord retrievePersonalBest(String playerId, String gameName);
+    public ScoreRecord getScore(String playerId, String gameName);
+
+
+    /**
+     * Retrieves a list of top scores for a specific game.
+     * 
+     * @param gameName Name of the game for which top scores are needed.
+     * @return List of {@link ScoreRecord} objects sorted by scores in descending order.
+     * @throws HighScoreException if there's any error during the retrieval operation.
+     */
+    public List<ScoreRecord> getHighScores(String gameName);
 
 
     /**
@@ -60,7 +62,7 @@ public interface HighScoreStorage {
      * @return List of {@link ScoreRecord} objects representing scores for all players across all games.
      * @throws HighScoreException if there's any error during the retrieval operation.
      */
-    public List<ScoreRecord> retrieveAllScores();
+    public List<ScoreRecord> getAllScores();
 
 
     /**
@@ -68,8 +70,26 @@ public interface HighScoreStorage {
      * a lower score is better for the game or higher.
      * 
      * @param gameName Name of the game for which metadata is needed.
-     * @return A {@link GameMetadata} object with details about the game's scoring system.
+     * @return A {@link GameRecord} object with details about the game's scoring system.
      * @throws HighScoreException if there's any error during the retrieval operation.
      */
-    public GameMetadata getGameMetadata(String gameName);
+    public GameRecord getGame(String gameName);
+
+
+    /**
+     * Deletes a given score record from the database.
+     * 
+     * @param playerId The player ID of the score to be deleted.
+     * @param gameName The game name of the score to be deleted.
+     */
+    public void deleteScore(String playerId, String gameName);
+
+
+    /**
+     * Deletes a given game record and all it's scores from the database.
+     * 
+     * @param playerId The player ID of the score to be deleted.
+     * @param gameName The game name of the score to be deleted.
+     */
+    public void deleteGame(String gameName);
 }

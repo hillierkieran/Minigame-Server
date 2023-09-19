@@ -9,7 +9,7 @@ import java.util.List;
 import minigames.server.database.*;
 
 
-public class GameTable extends DatabaseTable<GameMetadata> {
+public class GameTable extends DatabaseTable<GameRecord> {
 
     private static final String TABLE_NAME = "high_score_game_metadata";
     private static final String COLUMN_GAME_NAME = "game_name";
@@ -27,9 +27,9 @@ public class GameTable extends DatabaseTable<GameMetadata> {
 
 
     @Override
-    protected List<Object> getPrimaryKeyValues(GameMetadata record) {
+    protected List<Object> getPrimaryKeyValues(Object record) {
         return Arrays.asList(
-            record.getGameName()
+            ((GameRecord) record).getGameName()
         );
     }
 
@@ -59,7 +59,7 @@ public class GameTable extends DatabaseTable<GameMetadata> {
         );
     }
     @Override
-    protected List<Object> getInsertValues(GameMetadata record) {
+    protected List<Object> getInsertValues(GameRecord record) {
         return Arrays.asList(
             record.getGameName(),
             record.isLowerBetter()
@@ -77,7 +77,7 @@ public class GameTable extends DatabaseTable<GameMetadata> {
                     COLUMN_GAME_NAME + " = ?";
     }
     @Override
-    protected List<Object> getUpdateSetValues(GameMetadata record) {
+    protected List<Object> getUpdateSetValues(GameRecord record) {
         return Arrays.asList(
             record.isLowerBetter(),
             record.getGameName()
@@ -137,8 +137,8 @@ public class GameTable extends DatabaseTable<GameMetadata> {
 
 
     @Override
-    protected GameMetadata mapResultSetToEntity(ResultSet rs) throws SQLException {
-        return new GameMetadata(
+    protected GameRecord mapResultSetToEntity(ResultSet rs) throws SQLException {
+        return new GameRecord(
             rs.getString(COLUMN_GAME_NAME),
             rs.getBoolean(COLUMN_IS_LOWER_BETTER)
         );

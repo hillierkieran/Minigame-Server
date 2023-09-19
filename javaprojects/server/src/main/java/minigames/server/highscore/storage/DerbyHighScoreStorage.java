@@ -12,7 +12,7 @@ import minigames.server.database.DatabaseTable;
 import minigames.server.database.DatabaseShutdownException;
 import minigames.server.database.DerbyDatabase;
 
-import minigames.server.highscore.GameMetadata;
+import minigames.server.highscore.GameRecord;
 import minigames.server.highscore.ScoreRecord;
 
 
@@ -28,7 +28,8 @@ import minigames.server.highscore.ScoreRecord;
 public class DerbyHighScoreStorage implements HighScoreStorage {
 
     private DerbyDatabase database;
-    private DatabaseTable games, scores;
+    private GameTable gameTable;
+    private ScoreTable scoreTable;
 
 
     /**
@@ -43,35 +44,54 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
             );
         }
         this.database = database;
-        games = new GameTable(this.database);
-        scores = new ScoreTable(this.database, games);
+        gameTable = new GameTable(this.database);
+        scoreTable = new ScoreTable(this.database, gameTable);
+    }
+
+
+    /**
+     * TESTING ONLY
+     * Constructs a new DerbyHighScoreStorage object.
+     * 
+     * @param database The DerbyDatabase instance to be used for database operations.
+     */
+    DerbyHighScoreStorage(DatabaseTable gameTable, DatabaseTable scoreTable) {
+        this.gameTable  = (GameTable)  gameTable;
+        this.scoreTable = (ScoreTable) scoreTable;
     }
 
 
     @Override
     public void registerGame(String gameName, Boolean isLowerBetter) {
-        GameMetadata game = new GameMetadata(gameName, isLowerBetter);
-        GameMetadata prev = (GameMetadata) games.retrieveOne((Object) game);
-        if (prev == null) {
-            games.create(game);
-        } else if (Boolean.compare(prev.isLowerBetter(), isLowerBetter) != 0) {
-            games.update(game);
+        GameRecord prevRecord = getGame(gameName);
+        GameRecord gameRecord = new GameRecord(gameName, isLowerBetter);
+        if (prevRecord == null) {
+            gameTable.create(gameRecord);
+        } else if (Boolean.compare(prevRecord.isLowerBetter(), isLowerBetter) != 0) {
+            gameTable.update(gameRecord);
         }
+    }
+
+
+    @Override
+    public boolean isGameRegistered(String gameName) {
+        return getGame(gameName) != null;
     }
 
 
     /**
      * Stores a score record in the database.
      * 
-     * @param record The score record to be stored.
+     * @param scoreRecord The score record to be stored.
      */
     @Override
-    public void storeScore(ScoreRecord record) {
-        ScoreRecord prev = (ScoreRecord) scores.retrieveOne((Object) record);
-        if (prev == null) {
-            scores.create(record);
-        } else if (prev.getScore() != record.getScore()) {
-            scores.update(record);
+    public void storeScore(String playerId, String gameName, int score) {
+        ScoreRecord prevRecord = getScore(playerId, gameName);
+        ScoreRecord scoreRecord = new ScoreRecord(playerId, gameName, score);
+        if (prevRecord == null) {
+            scoreTable.create(scoreRecord);
+        } else if (prevRecord.getScore() != score) {
+            scoreTable.update(scoreRecord);
         }
     }
 
@@ -83,8 +103,8 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
      * @return A list of ScoreRecord objects representing the top scores.
      */
     @Override
-    public List<ScoreRecord> retrieveTopScores(String gameName) {
-        return scores.retrieveMany((Object) gameName);
+    public List<ScoreRecord> getHighScores(String gameName) {
+        return scoreTable.retrieveMany(gameName);
     }
 
 
@@ -96,9 +116,8 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
      * @return A ScoreRecord object representing the player's best score.
      */
     @Override
-    public ScoreRecord retrievePersonalBest(String playerId, String gameName) {
-        return (ScoreRecord) scores
-            .retrieveOne((Object) new ScoreRecord(playerId, gameName, 0));
+    public ScoreRecord getScore(String playerId, String gameName) {
+        return scoreTable.retrieveOne(new ScoreRecord(playerId, gameName, 0));
     }
 
 
@@ -108,8 +127,8 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
      * @return A list of ScoreRecord objects representing all scores.
      */
     @Override
-    public List<ScoreRecord> retrieveAllScores() {
-        return scores.retrieveAll();
+    public List<ScoreRecord> getAllScores() {
+        return scoreTable.retrieveAll();
     }
 
 
@@ -117,10 +136,34 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
      * Retrieves the metadata for a given game from the database.
      * 
      * @param gameName The name of the game to retrieve metadata for.
-     * @return A GameMetadata object representing the game's metadata.
+     * @return A GameRecord object representing the game's metadata.
      */
     @Override
-    public GameMetadata getGameMetadata(String gameName) {
-        return (GameMetadata) games.retrieveOne((Object) gameName);
+    public GameRecord getGame(String gameName) {
+        return gameTable.retrieveOne(new GameRecord(gameName, false));
+    }
+
+
+    /**
+     * Deletes a given score record from the database.
+     * 
+     * @param playerId The player ID of the score to be deleted.
+     * @param gameName The game name of the score to be deleted.
+     */
+    @Override
+    public void deleteScore(String playerId, String gameName) {
+        scoreTable.delete(new ScoreRecord(playerId, gameName, 0));
+    }
+
+
+    /**
+     * Deletes a given game record and all it's scores from the database.
+     * 
+     * @param playerId The player ID of the score to be deleted.
+     * @param gameName The game name of the score to be deleted.
+     */
+    @Override
+    public void deleteGame(String gameName) {
+        gameTable.delete(new GameRecord(gameName, false));
     }
 }

@@ -79,9 +79,9 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
 
     // Return a list containing the value(s) of the primary key or compensate keys
     @Override
-    protected List<Object> getPrimaryKeyValues(ExampleRecord record) {
+    protected List<Object> getPrimaryKeyValues(Object record) {
         return Arrays.asList(
-            record.getKey()
+            ((ExampleRecord) record).getKey()
             // ... Add more values if using a compensate key structure
         );
     }

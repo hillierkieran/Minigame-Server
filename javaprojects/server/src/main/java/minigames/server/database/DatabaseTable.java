@@ -41,7 +41,7 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
      * @param tableName  the name of the database table
      */
     protected DatabaseTable(String tableName) {
-        this(DatabaseConfig.getDefaultInstance(), tableName);
+        this(Database.getInstance(), tableName);
     }
 
 
@@ -102,15 +102,15 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
     public synchronized void update(T record) {
         List<Object> combinedValues = new ArrayList<>();
         combinedValues.addAll(getUpdateSetValues(record));
-        combinedValues.addAll(getPrimaryKeyValues(record));
+        combinedValues.addAll(getPrimaryKeyValues((Object) record));
         executeUpdate(getUpdateSQL(), combinedValues);
     }
 
     @Override
-    public synchronized T retrieveOne(T key) {
+    public synchronized T retrieveOne(Object filterCriteria) {
         List<T> results = executeQuery(
             getRetrieveOneSQL(),
-            getPrimaryKeyValues(key),
+            getPrimaryKeyValues(filterCriteria),
             this::mapResultSetToEntity
         );
         return (
@@ -124,7 +124,7 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
     public synchronized List<T> retrieveMany(Object filterCriteria) {
         return executeQuery(
             getRetrieveManySQL(),
-            getRetrieveManyKeyValues((T) filterCriteria),
+            getRetrieveManyKeyValues(filterCriteria),
             this::mapResultSetToEntity
         );
     }
@@ -142,7 +142,7 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
     public synchronized void delete(T record) {
         executeUpdate(
             getDeleteSQL(),
-            getPrimaryKeyValues(record)
+            getPrimaryKeyValues((Object) record)
         );
     }
 
@@ -164,7 +164,7 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
 
 
     // Abstract methods to be implemented by extended table classes
-    protected abstract List<Object> getPrimaryKeyValues(T record);
+    protected abstract List<Object> getPrimaryKeyValues(Object obj);
     protected abstract String getTableCreationSQL();
     protected abstract String getInsertSQL();
     protected abstract List<Object> getInsertValues(T record);
@@ -236,12 +236,14 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
     void restore(File file) {
         if (file.exists()) {
             String tempTableName = tableName + "_temp";
-            // restore to temporary table
+            // restore into a temporary table
             execute(getRestoreCommand(tempTableName, file.getAbsolutePath()));
             if (hasDuplicates(tempTableName)) {
                 logger.error("Backup contains duplicates and cannot be restored.");
             } else {
-                // Append Data from the Temporary Table
+                // Create working table if not done already
+                createTable();
+                // Append data from the temporary table into working table
                 execute("INSERT INTO " + tableName + " SELECT * FROM " + tempTableName);
                 logger.info("Data from backup appended to table: {}", tableName);
             }
@@ -307,9 +309,7 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
      * Ensures that the represented table exists in the database.
      */
     public synchronized void ensureTableExists() {
-        if (!tableExists()) {
-            createTable();
-        }
+        createTable();
     }
 
 

@@ -36,7 +36,7 @@ public class GlobalLeaderboard {
      */
     public Map<String, Integer> computeGlobalScores() {
         // Retrieve all scores from storage
-        List<ScoreRecord> allScores = storage.retrieveAllScores();
+        List<ScoreRecord> allScores = storage.getAllScores();
 
         // Group the scores by game and compute rankings for each game
         Map<String, Map<String, Integer>> rankingsByGame = allScores.stream()
@@ -79,7 +79,7 @@ public class GlobalLeaderboard {
     private Map<String, Integer> computeRankingsForGame(String gameName, List<ScoreRecord> scores) {
         // Sort scores based on the game's criteria (lower or higher is better)
         scores.sort((score1, score2) -> 
-            storage.getGameMetadata(gameName).isLowerBetter() 
+            storage.getGame(gameName).isLowerBetter() 
             ? Integer.compare(score1.getScore(), score2.getScore())
             : Integer.compare(score2.getScore(), score1.getScore()));
         
