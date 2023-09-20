@@ -28,7 +28,7 @@ public class DerbyDatabaseIntegrationTests {
     private static final Logger logger = LogManager.getLogger(DerbyDatabaseIntegrationTests.class);
     private static final String TEST_ENV = "testEnv";
     private static final String TEST_DB_PROPERTIES = "database/DerbyDatabaseTest.properties";
-    private static final String TEST_TABLE_NAME = "test_table";
+    private static final String TEST_TABLE_NAME = "TEST_TABLE";
     private static String testDatabasePath;
 
     private DerbyDatabase testDatabase;
@@ -49,7 +49,7 @@ public class DerbyDatabaseIntegrationTests {
         testDatabase = new DerbyDatabase(TEST_DB_PROPERTIES);
         testTable = new ExampleTable(testDatabase, TEST_TABLE_NAME);
         if (testTable.tableExists()) {
-            testTable.destroyTable();
+            testTable.clearTable();
         }
         testTable.createTable();
     }

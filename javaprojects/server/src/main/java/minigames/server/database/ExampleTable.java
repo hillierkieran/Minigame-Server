@@ -117,7 +117,8 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
                 COLUMN_EXAMPLE2 + " INT, " +
                 // ... Add more columns and their data types
                 "PRIMARY KEY (" +
-                    COLUMN_EXAMPLE1 +  // Your primary key column(s)
+                    COLUMN_EXAMPLE1 +
+                    // ... Add more key columns if using a compensate key structure
                 ")" +
             ")"
         );

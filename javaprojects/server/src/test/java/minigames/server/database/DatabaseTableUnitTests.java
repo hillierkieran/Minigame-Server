@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 public class DatabaseTableUnitTests {
 
     private static final String TEST_ENV = "testEnv";
-    private static final String TEST_TABLE_NAME = "test_table";
+    private static final String TEST_TABLE_NAME = "TEST_TABLE";
 
     @Mock
     private Database mockDatabase;
@@ -114,7 +114,7 @@ public class DatabaseTableUnitTests {
 
     @Test
     public void testConstructor() throws Exception {
-        String newTableName = "new_" + TEST_TABLE_NAME;
+        String newTableName = "NEW_" + TEST_TABLE_NAME;
         ExampleTable newTable = new ExampleTable(mockDatabase, newTableName);
         verify(mockDatabase).registerTable(newTable);
         assertEquals(newTable.getTableName(), newTableName);
@@ -124,8 +124,7 @@ public class DatabaseTableUnitTests {
     public void testCreateTable() throws Exception {
         mockTableExists(false);
         testTable.createTable();
-        verify(mockConnection).prepareStatement(contains("CREATE TABLE"));
-        verify(mockConnection).prepareStatement(contains(TEST_TABLE_NAME));
+        verify(mockConnection).prepareStatement(contains("CREATE TABLE " + TEST_TABLE_NAME));
         verify(mockStatement).execute();
     }
 
@@ -135,7 +134,7 @@ public class DatabaseTableUnitTests {
         mockBackupExists(true);
         testTable.restore(mockFile);
         verify(mockConnection).prepareStatement(contains("SYSCS_IMPORT_TABLE"));
-        verify(mockStatement, times(3)).execute();
+        verify(mockStatement, times(2)).execute();
     }
 
 
@@ -244,7 +243,7 @@ public class DatabaseTableUnitTests {
         mockTableExists(true);
         testTable.destroyTable();
         verify(mockDatabase).unregisterTable(testTable);
-        verify(mockConnection).prepareStatement(contains("DROP TABLE"));
+        verify(mockConnection).prepareStatement(contains("DROP TABLE " + TEST_TABLE_NAME));
         verify(mockStatement).execute();
     }
 }
