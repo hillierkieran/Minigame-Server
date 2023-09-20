@@ -41,7 +41,7 @@ public class DerbyDatabaseIntegrationTests {
         testDatabasePath = Utilities.getProperties(TEST_DB_PROPERTIES)
                                     .getProperty("db.jdbcUrl")
                                     .split(":")[2].split(";")[0];
-        //deleteTestDatabaseFiles();
+        deleteTestDatabaseFiles();
     }
 
     @BeforeEach
