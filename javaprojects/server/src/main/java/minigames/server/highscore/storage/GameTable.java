@@ -27,6 +27,23 @@ public class GameTable extends DatabaseTable<GameRecord> {
 
 
     @Override
+    public List<String> getColumnNames() {
+        return Arrays.asList(
+            COLUMN_GAME_NAME,
+            COLUMN_IS_LOWER_BETTER
+        );
+    }
+
+
+    @Override
+    public List<String> getKeyColumnNames() {
+        return Arrays.asList(
+            COLUMN_GAME_NAME
+        );
+    }
+
+
+    @Override
     protected List<Object> getPrimaryKeyValues(Object record) {
         return Arrays.asList(
             ((GameRecord) record).getGameName()

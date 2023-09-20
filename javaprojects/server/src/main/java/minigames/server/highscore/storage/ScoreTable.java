@@ -32,6 +32,25 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
 
 
     @Override
+    public List<String> getColumnNames() {
+        return Arrays.asList(
+            COLUMN_PLAYER_ID,
+            COLUMN_GAME_NAME,
+            COLUMN_SCORE
+        );
+    }
+
+
+    @Override
+    public List<String> getKeyColumnNames() {
+        return Arrays.asList(
+            COLUMN_PLAYER_ID,
+            COLUMN_GAME_NAME
+        );
+    }
+
+
+    @Override
     protected List<Object> getPrimaryKeyValues(Object record) {
         return Arrays.asList(
             ((ScoreRecord) record).getPlayerId(),

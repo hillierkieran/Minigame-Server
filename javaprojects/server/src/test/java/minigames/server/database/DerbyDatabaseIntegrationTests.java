@@ -411,4 +411,31 @@ public class DerbyDatabaseIntegrationTests {
         assertTrue(testDatabase.isDisconnected());
         assertTrue(testDatabase.isClosed());
     }
+
+    @Test
+    public void testBackupAndRestore() throws IOException, SQLException {
+        // Setup: Create initial records and insert them
+        ExampleRecord record1 = new ExampleRecord("key1", 10);
+        ExampleRecord record2 = new ExampleRecord("key2", 20);
+        testTable.create(record1);
+        testTable.create(record2);
+
+        // Perform backup
+        testTable.backup();
+
+        // Modify the table
+        testTable.delete(record1);                       // delete record1
+        testTable.update(new ExampleRecord("key2", 88)); // update record2's value
+
+        // Restore the table from backup
+        testTable.restore();
+
+        // Check if data matches the initial state
+        ExampleRecord restoredRecord1 = testTable.retrieveOne(record1);
+        ExampleRecord restoredRecord2 = testTable.retrieveOne(record2);
+
+        assertNotNull(restoredRecord1);
+        assertEquals(record1.getValue(), restoredRecord1.getValue());
+        assertEquals(record2.getValue(), restoredRecord2.getValue());
+    }
 }
