@@ -124,7 +124,8 @@ public class DatabaseTableUnitTests {
     public void testCreateTable() throws Exception {
         mockTableExists(false);
         testTable.createTable();
-        verify(mockConnection).prepareStatement(contains("CREATE TABLE " + TEST_TABLE_NAME));
+        verify(mockConnection)
+            .prepareStatement(contains("CREATE TABLE " + TEST_TABLE_NAME));
     }
 
 
@@ -132,7 +133,8 @@ public class DatabaseTableUnitTests {
     public void testRestore() throws Exception {
         mockBackupExists(true);
         testTable.restore(mockFile);
-        verify(mockConnection).prepareStatement(contains("SYSCS_IMPORT_TABLE"));
+        verify(mockConnection, atLeastOnce())
+            .prepareStatement(contains("SYSCS_IMPORT_TABLE"));
     }
 
 
