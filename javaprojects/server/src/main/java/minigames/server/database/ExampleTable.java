@@ -8,19 +8,16 @@ import java.util.List;
 
 
 /**
- * This class provides a fill-in-the-blanks template implementations of the CRUD
- * (Create, Retrieve, Update, Delete) operations for the specified table.
+ * Template for CRUD operations on a table.
+ * Copy class and replace placeholders before use.
  * 
- * Please copy this file, replace placeholders and fill blank areas with your information before using.
- * 
- * Only call the methods listed in `DatabaseCRUDOperations`.
- *
  * @author Kieran Hillier (Group: Merge Mavericks)
+ * See `server.highscore.DerbyHighScoreStorage` for how I use these tables
  */
 public class ExampleTable extends DatabaseTable<ExampleRecord> {
 
     // Constants representing table name and column names
-    private static final String TABLE_NAME = "your_table_name_here";
+    private static final String TABLE_NAME      = "EXAMPLE_TABLE";
     private static final String COLUMN_EXAMPLE1 = "example_column1";
     private static final String COLUMN_EXAMPLE2 = "example_column2";
     // ... Add more columns as needed
@@ -28,6 +25,15 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
     // Optional reference to another table(s) if using foreign keys
     private DatabaseTable referencedTable;
 
+
+// Constructors
+
+    /**
+     * Constructor to initialise the table structure using default database.
+     */
+    public ExampleTable() {
+        super(TABLE_NAME);
+    }
 
     /**
      * Optional constructor to initialise the table structure with reference
@@ -40,8 +46,8 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         this.referencedTable = referencedTable;
     }
 
-
     /**
+     * FOR TESTS
      * Optional constructor to initialise the table structure using a defined database.
      *
      * @param database The defined database object.
@@ -49,7 +55,6 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
     public ExampleTable(Database database) {
         super(database, TABLE_NAME);
     }
-
 
     /**
      * FOR TESTS
@@ -63,19 +68,11 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
     }
 
 
-    /**
-     * Constructor to initialise the table structure using default database.
-     */
-    public ExampleTable() {
-        super(TABLE_NAME);
-    }
+// Getters
 
-
-    // Simple getters for the column names, to be used elsewhere if needed
     public String getColumnExample1() { return COLUMN_EXAMPLE1; }
     public String getColumnExample2() { return COLUMN_EXAMPLE2; }
-    // ... Add more getters for other columns
-
+    // ... Add more columns as required
 
     @Override
     public List<String> getColumnNames() {
@@ -86,7 +83,6 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
     @Override
     public List<String> getKeyColumnNames() {
         return Arrays.asList(
@@ -96,17 +92,27 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
     }
 
 
-    // Return a list containing the value(s) of the primary key or compensate keys
+// SQL statement building methods
+
+    /** 
+     * Returns the primary key values for the provided object.
+     * 
+     * @param obj Object to retrieve primary key values from.
+     * @return List of primary key values.
+     * */
     @Override
-    protected List<Object> getPrimaryKeyValues(Object record) {
+    protected List<Object> getPrimaryKeyValues(Object obj) {
         return Arrays.asList(
-            ((ExampleRecord) record).getKey()
+            ((ExampleRecord) obj).getKey() // I'm using a record object but you could directly pass a string to int
             // ... Add more values if using a compensate key structure
         );
     }
 
-
-    // Define table creation SQL with columns and primary key(s)
+    /**
+     * Returns the table creation SQL statement with columns and primary key(s)
+     * 
+     * @return SQL string to create the table.
+     */
     @Override
     protected String getTableCreationSQL() {
         return (
@@ -124,8 +130,11 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Define SQL statement to insert a new record into the table
+    /**
+     * Returns the insert record SQL statement
+     * 
+     * @return SQL string for insert operations.
+     */
     @Override
     protected String getInsertSQL() {
         return (
@@ -140,8 +149,12 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Return a list containing the values to be inserted
+    /**
+     * Returns the values to be inserted into the table for a record.
+     * 
+     * @param record Record to get values from.
+     * @return List of values for insert operations.
+     */
     @Override
     protected List<Object> getInsertValues(ExampleRecord record) {
         return Arrays.asList(
@@ -151,8 +164,11 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Define SQL statement to update an existing record based on primary key(s)
+    /**
+     * Returns the update record SQL statement
+     * 
+     * @return SQL string for update operations.
+     */
     @Override
     protected String getUpdateSQL() {
         return (
@@ -167,8 +183,12 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Return a list containing the values to be updated (don't include keys)
+    /**
+     * Returns the values to be modified during an update operation (don't include keys).
+     * 
+     * @param record Record to get values from.
+     * @return List of values for update operations.
+     */
     @Override
     protected List<Object> getUpdateSetValues(ExampleRecord record) {
         return Arrays.asList(
@@ -177,8 +197,11 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Define SQL statement to retrieve a single record based on primary key(s)
+    /**
+     * Returns the SQL query to retrieve one record 
+     * 
+     * @return SQL string to retrieve a single record.
+     */
     @Override
     protected String getRetrieveOneSQL() {
         return (
@@ -194,8 +217,11 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Define SQL statement to retrieve multiple records based on some criteria (e.g., a foreign key)
+    /**
+     * Returns the SQL query to retrieve multiple records
+     * 
+     * @return SQL string to retrieve multiple records based on a criterion.
+     */
     @Override
     protected String getRetrieveManySQL() {
         return (
@@ -210,8 +236,12 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Return a list containing the criteria values to match for retrieval
+    /** 
+     * Returns the key values used for filtering in retrieveMany operations.
+     * 
+     * @param filterCriteria Criteria to filter records.
+     * @return List of key values for filtering. 
+     */
     @Override
     protected List<Object> getRetrieveManyKeyValues(Object filterCriteria) {
         return Arrays.asList(
@@ -220,8 +250,11 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Define SQL statement to retrieve all records in the table
+    /**
+     * Returns the SQL query to retrieve all records from the table
+     * 
+     * @return SQL string to retrieve all records.
+     */
     @Override
     protected String getRetrieveAllSQL() {
         return (
@@ -234,8 +267,11 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
         );
     }
 
-
-    // Define SQL statement to delete a record based on primary key(s)
+    /**
+     * Returns the delete record SQL statement
+     * 
+     * @return SQL string for delete operations.
+     */
     @Override
     protected String getDeleteSQL() {
         return (
@@ -248,13 +284,21 @@ public class ExampleTable extends DatabaseTable<ExampleRecord> {
     }
 
 
-    // Convert a ResultSet row (SQL query output) into a ExampleRecord object
+// Result mapper
+
+    /** 
+     * Maps a row returned from a query to an entity of type T (your record object class).
+     * 
+     * @param rs ResultSet row to map.
+     * @return Mapped entity of type T.
+     * @throws SQLException If mapping fails.
+     */
     @Override
     protected ExampleRecord mapResultSetToEntity(ResultSet rs) throws SQLException {
         return new ExampleRecord(
             rs.getString(COLUMN_EXAMPLE1),
             rs.getInt(COLUMN_EXAMPLE2)
-            // ... Convert more columns from the ResultSet
+            // ... Convert more columns from the ResultSet as required
         );
     }
 }

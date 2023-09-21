@@ -4,7 +4,7 @@ package minigames.server.database;
 /**
  * This exception is thrown when there is an issue during database shutdown.
  */
-public class DatabaseShutdownException extends Exception {
+public class DatabaseShutdownException extends DatabaseException {
 
 
     /**
@@ -14,6 +14,16 @@ public class DatabaseShutdownException extends Exception {
      */
     public DatabaseShutdownException(String message) {
         super(message);
+    }
+
+
+    /**
+     * Constructs a new DatabaseShutdownException with the specified cause.
+     *
+     * @param cause the cause of the exception.
+     */
+    public DatabaseShutdownException(Throwable cause) {
+        super(cause);
     }
 
 

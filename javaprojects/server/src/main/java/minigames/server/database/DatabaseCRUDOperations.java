@@ -4,64 +4,60 @@ import java.util.List;
 
 
 /**
- * Represents a generic database table with basic CRUD
- * (Create, Retrieve, Update, Delete) operations.
- * Specific implementations for various databases and
- * table structures can extend this interface.
+ * Interface for generic database table CRUD operations.
  *
- * @param <T> The type of records stored in the table.
- *
+ * @param <T> Type of records in the table.
  * @author Kieran Hillier (Group: Merge Mavericks)
  */
 public interface DatabaseCRUDOperations<T> {
 
 
     /**
-     * Inserts a new record into the table.
+     * Inserts a new record.
      *
-     * @param record The record to be created.
+     * @param record Record to insert.
      */
     public void create(T record);
 
 
     /**
-     * Updates an existing record in the table.
+     * Modifies an existing record.
      *
-     * @param record The record with updated details.
+     * @param record Updated record.
      */
     public void update(T record);
 
 
     /**
-     * Retrieves a single record from the table based on specific criteria.
+     * Fetches a single record based on criteria.
      *
-     * @param filterCriteria The criteria to filter the retrieved record.
-     * @return The retrieved record, or null if not found.
+     * @param filterCriteria Criteria to filter record.
+     * @return Retrieved record or null.
      */
     public T retrieveOne(Object filterCriteria);
 
 
     /**
-     * Retrieves multiple records from the table based on a given filter or criteria.
+     * Fetches multiple records based on criteria.
      *
-     * @param filterCriteria The criteria to filter the retrieved records.
-     * @return A list of retrieved records, empty list if none found.
+     * @param filterCriteria Criteria for retrieval.
+     * @return List of retrieved records.
      */
     public List<T> retrieveMany(Object filterCriteria);
 
 
     /**
-     * Retrieves all records from the table.
+     * Fetches all records.
      *
-     * @return A list of all records in the table.
+     * @return All records.
      */
     public List<T> retrieveAll();
 
 
     /**
-     * Deletes a specific record from the table.
+     * Removes a specific record.
      *
-     * @param record The record to be deleted.
+     * @param record Record to remove.
      */
     public void delete(T record);
 }

@@ -48,10 +48,8 @@ public class DerbyDatabaseIntegrationTests {
     public void setup() {
         testDatabase = new DerbyDatabase(TEST_DB_PROPERTIES);
         testTable = new ExampleTable(testDatabase, TEST_TABLE_NAME);
-        if (testTable.tableExists()) {
-            testTable.clearTable();
-        }
         testTable.createTable();
+        testTable.clearTable();
     }
 
     private boolean isDatabaseSetupCorrectly() {
@@ -65,7 +63,8 @@ public class DerbyDatabaseIntegrationTests {
     public void tearDown() throws SQLException {
         // restart so we can clear table from database
         if (testDatabase == null ||
-            !testDatabase.getPropFileName().equals(TEST_DB_PROPERTIES)) {
+            !testDatabase.getPropFileName().equals(TEST_DB_PROPERTIES) ||
+            !testDatabase.isReady()) {
             testDatabase = new DerbyDatabase(TEST_DB_PROPERTIES);
         }
         testDatabase.destroyAllRegisteredTestTables();

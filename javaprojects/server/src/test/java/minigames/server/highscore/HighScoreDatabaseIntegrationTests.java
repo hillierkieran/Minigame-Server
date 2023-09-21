@@ -31,6 +31,10 @@ public class HighScoreDatabaseIntegrationTests {
 
     @AfterEach
     public void tearDown() {
+        if (database == null)
+            database = DerbyDatabase.getInstance();
+        else if (!database.isReady())
+            database.initialise();
         api.deleteGame(TEST_GAME_NAME);
     }
 
