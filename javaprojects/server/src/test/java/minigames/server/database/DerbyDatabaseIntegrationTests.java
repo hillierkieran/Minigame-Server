@@ -63,10 +63,10 @@ public class DerbyDatabaseIntegrationTests {
     public void tearDown() throws SQLException {
         // restart so we can clear table from database
         if (testDatabase == null ||
-            !testDatabase.getPropFileName().equals(TEST_DB_PROPERTIES) ||
-            !testDatabase.isReady()) {
+            !testDatabase.getPropFileName().equals(TEST_DB_PROPERTIES)) {
             testDatabase = new DerbyDatabase(TEST_DB_PROPERTIES);
-        }
+        } else if (!testDatabase.isReady())
+            testDatabase.initialise();
         testDatabase.destroyAllRegisteredTestTables();
         testDatabase.close();
         testDatabase = null;

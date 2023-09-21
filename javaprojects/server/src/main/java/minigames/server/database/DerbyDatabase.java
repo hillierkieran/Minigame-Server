@@ -89,8 +89,9 @@ public class DerbyDatabase extends Database {
     @Override
     public Connection getConnection() {
         try {
+            if (!isReady()) initialise(); // Try to revive if dead
             return dataSource.getConnection();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new DatabaseAccessException("Failed to obtain a connection.", e);
         }
     }
@@ -106,8 +107,10 @@ public class DerbyDatabase extends Database {
     public boolean closeConnection(Connection connection) throws DatabaseAccessException {
         if (connection != null) {
             try {
-                connection.close();
-                return true;
+                if (!connection.isClosed()) {
+                    connection.close();
+                    return true;
+                }
             } catch (SQLException e) {
                 throw new DatabaseAccessException("Error closing connection.", e);
             }

@@ -41,6 +41,8 @@ public class DatabaseTableUnitTests {
     private ResultSet mockResultSet;
     @Mock
     private File mockFile;
+    @Mock
+    private File mockDir;
 
     private ExampleTable testTable;
 
@@ -62,6 +64,9 @@ public class DatabaseTableUnitTests {
 
     private void mockBackupExists(boolean exists) throws Exception {
         when(mockFile.exists()).thenReturn(exists);
+        when(mockFile.getParentFile()).thenReturn(mockDir);
+        when(mockDir.listFiles()).thenReturn(new File[]{mockFile});
+        when(mockFile.getName()).thenReturn(TEST_TABLE_NAME + ".sql");
         when(mockFile.mkdirs()).thenReturn(true);
     }
 

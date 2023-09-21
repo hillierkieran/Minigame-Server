@@ -28,16 +28,14 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
     private static final String BACKUP_DIR = System.getProperty("user.dir") + "/database/backup/";
 
     protected Database database;
-    protected String backupDir;
-    protected String filename;
+    protected String filePath;
     protected String tableName;
 
 
 // Constructors
 
     /**
-     * Constructs a table tied to the default database.
-     *
+     * Constructor.
      * @param tableName Name of the database table.
      */
     protected DatabaseTable(String tableName) {
@@ -45,16 +43,14 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
     }
 
     /**
-     * Constructs a table tied to a specific database.
-     *
+     * Constructor.
      * @param database Database this table interacts with.
      * @param tableName Name of the database table.
      */
     protected DatabaseTable(Database database, String tableName) {
         this.database  = database;
-        this.backupDir = BACKUP_DIR;
         this.tableName = tableName.toUpperCase();
-        this.filename  = this.backupDir + this.tableName + ".sql";
+        this.filePath  = BACKUP_DIR + this.tableName + ".sql";
         this.database.registerTable(this);
         restore();
     }
@@ -166,16 +162,16 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
      * @throws IOException If backup fails.
      */
     public synchronized void backup() throws IOException {
-        backup(new File(backupDir));
+        backup(new File(BACKUP_DIR));
     }
-    void backup(File dir) throws IOException {
+    synchronized void backup(File dir) throws IOException {
         if (tableExists()) {
             if (!dir.exists() && !dir.mkdirs())
                 throw new IOException("Unable to create backup directory.");
-            String tempFilename = filename.replace(".sql", "_temp.sql");
-            execute(getBackupCommand(tableName, tempFilename)); // backup to temp file
-            new File(filename).delete(); // delete prev backup file
-            new File(tempFilename).renameTo(new File(filename)); // rename temp
+            String tempfilePath = filePath.replace(".sql", "_temp.sql");
+            execute(getBackupCommand(tableName, tempfilePath)); // backup to temp file
+            new File(filePath).delete(); // delete prev backup file
+            new File(tempfilePath).renameTo(new File(filePath)); // rename temp
         }
     }
 
@@ -183,13 +179,16 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
      * Restores the table from the default backup.
      */
     public synchronized void restore() {
-        restore(new File(filename));
+        restore(new File(filePath));
     }
-    void restore(File file) {
+    synchronized void restore(File file) {
+        restore(tableName, file);
+    }
+    synchronized void restore(String tableName, File file) {
         if (file.exists()) {
             if (tableExists()) clearTable();
             else createTable();
-            execute(getRestoreCommand());
+            execute(getRestoreCommand(tableName, BACKUP_DIR + file.getName()));
         }
     }
 
@@ -389,14 +388,14 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
 
     // Constructs the SQL command to restore data from the backup file.
     private String getRestoreCommand() {
-        return getRestoreCommand(tableName, filename);
+        return getRestoreCommand(tableName, filePath);
     }
-    private String getRestoreCommand(String tableName, String filename) {
+    private String getRestoreCommand(String tableName, String filePath) {
         return (
             "CALL SYSCS_UTIL.SYSCS_IMPORT_TABLE (" +
                 "null,'" +          // Schema name (use default)
                 tableName + "', '" +// Table name
-                filename + "', " +  // Filename
+                filePath + "', " +  // filePath
                 "null, " +          // Column delimiter (use default: ',' )
                 "null, " +          // Character delimiter (use default: '"'
                 "null, " +          // Code-set (use default)
@@ -407,14 +406,14 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
 
     // Constructs the SQL command to backup the current table data.
     private String getBackupCommand() {
-        return getBackupCommand(tableName, filename);
+        return getBackupCommand(tableName, filePath);
     }
-    private String getBackupCommand(String tableName, String filename) {
+    private String getBackupCommand(String tableName, String filePath) {
         return (
             "CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (" +
                 "null, '" +         // Schema name (use default)
                 tableName + "', '" +// Table name
-                filename + "', "+   // Filename
+                filePath + "', "+   // filePath
                 "null, " +          // Column delimiter (use default: ',' )
                 "null, " +          // Character delimiter (use default: '"' )
                 "null)"             // Code-set (use default)
