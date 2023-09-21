@@ -4,26 +4,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import minigames.server.database.DatabaseTable;
-import minigames.server.database.DatabaseShutdownException;
-import minigames.server.database.DerbyDatabase;
-
-import minigames.server.highscore.GameRecord;
-import minigames.server.highscore.ScoreRecord;
+import minigames.server.database.*;
 
 
 /**
- * An implementation of the HighScoreStorage interface using the Derby Database.
- * <p>
- * This class provides functionality to interact with the Derby Database system for storing
- * and retrieving game high scores. The implementation leverages Java's JDBC API to manage
- * database connections, perform CRUD operations, and retrieve data.
- * </p>
- * Example usage can be found in the {@link HighScoreAPI} class.
+ * Derby Database implementation of HighScoreStorage.
  */
 public class DerbyHighScoreStorage implements HighScoreStorage {
 
@@ -33,9 +21,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * Constructs a new DerbyHighScoreStorage object.
-     * 
-     * @param database The DerbyDatabase instance to be used for database operations.
+     * @param database Database for operations.
      */
     public DerbyHighScoreStorage(DerbyDatabase database) {
         if (!(database instanceof DerbyDatabase)) {
@@ -50,10 +36,9 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * TESTING ONLY
-     * Constructs a new DerbyHighScoreStorage object.
-     * 
-     * @param database The DerbyDatabase instance to be used for database operations.
+     * For testing only.
+     * @param gameTable Game table reference.
+     * @param scoreTable Score table reference.
      */
     DerbyHighScoreStorage(DatabaseTable gameTable, DatabaseTable scoreTable) {
         this.gameTable  = (GameTable)  gameTable;
@@ -61,6 +46,12 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
     }
 
 
+    /**
+     * Inserts or updates a given game.
+     * 
+     * @param gameName Game name.
+     * @param isLowerBetter Game's score ordering preference.
+     */
     @Override
     public void registerGame(String gameName, Boolean isLowerBetter) {
         GameRecord prevRecord = getGame(gameName);
@@ -73,6 +64,12 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
     }
 
 
+    /**
+     * Checks if a given game exists in the database.
+     * 
+     * @param gameName Game name.
+     * @return True if exists, false otherwise.
+     */
     @Override
     public boolean isGameRegistered(String gameName) {
         return getGame(gameName) != null;
@@ -80,9 +77,11 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * Stores a score record in the database.
+     * Inserts or updates a given score.
      * 
-     * @param scoreRecord The score record to be stored.
+     * @param playerId Player ID.
+     * @param gameName Game name.
+     * @param score Score value.
      */
     @Override
     public void storeScore(String playerId, String gameName, int score) {
@@ -97,10 +96,10 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * Retrieves a list of top scores for a given game
+     * Retrieves all the high scores for a given game.
      * 
-     * @param gameName The name of the game to retrieve scores for.
-     * @return A list of ScoreRecord objects representing the top scores.
+     * @param gameName Game name.
+     * @return List of top scores.
      */
     @Override
     public List<ScoreRecord> getHighScores(String gameName) {
@@ -109,11 +108,11 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * Retrieves the best score for a given player and game.
+     * Retrieves the best score for player in a game.
      * 
-     * @param playerId The ID of the player to retrieve the score for.
-     * @param gameName The name of the game to retrieve the score for.
-     * @return A ScoreRecord object representing the player's best score.
+     * @param playerId Player ID.
+     * @param gameName Game name.
+     * @return Best score.
      */
     @Override
     public ScoreRecord getScore(String playerId, String gameName) {
@@ -122,9 +121,9 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * Retrieves all scores across all games from the database.
+     * Retrieves all scores for all games.
      * 
-     * @return A list of ScoreRecord objects representing all scores.
+     * @return All scores.
      */
     @Override
     public List<ScoreRecord> getAllScores() {
@@ -133,10 +132,10 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * Retrieves the metadata for a given game from the database.
+     * Retrieves a game's metadata record.
      * 
-     * @param gameName The name of the game to retrieve metadata for.
-     * @return A GameRecord object representing the game's metadata.
+     * @param gameName Game name.
+     * @return Game metadata record.
      */
     @Override
     public GameRecord getGame(String gameName) {
@@ -145,10 +144,10 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * Deletes a given score record from the database.
+     * Deletes a score record.
      * 
-     * @param playerId The player ID of the score to be deleted.
-     * @param gameName The game name of the score to be deleted.
+     * @param playerId Player ID.
+     * @param gameName Game name.
      */
     @Override
     public void deleteScore(String playerId, String gameName) {
@@ -157,10 +156,9 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
 
     /**
-     * Deletes a given game record and all it's scores from the database.
+     * Deletes a game and its scores.
      * 
-     * @param playerId The player ID of the score to be deleted.
-     * @param gameName The game name of the score to be deleted.
+     * @param gameName Game name.
      */
     @Override
     public void deleteGame(String gameName) {

@@ -9,6 +9,9 @@ import java.util.List;
 import minigames.server.database.*;
 
 
+/**
+ * Handles database operations for game metadata records.
+ */
 public class ScoreTable extends DatabaseTable<ScoreRecord> {
 
     private static final String TABLE_NAME = "high_score_records";
@@ -18,7 +21,11 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
 
     private GameTable gameTable;
 
-
+    /**
+     * Constructor.
+     * @param database The database instance.
+     * @param referencedTable reference to the game table.
+     */
     public ScoreTable(Database database, GameTable referencedTable) {
         super(database, TABLE_NAME);
         this.gameTable = referencedTable;
@@ -40,7 +47,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
         );
     }
 
-
     @Override
     public List<String> getKeyColumnNames() {
         return Arrays.asList(
@@ -49,7 +55,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
         );
     }
 
-
     @Override
     protected List<Object> getPrimaryKeyValues(Object record) {
         return Arrays.asList(
@@ -57,7 +62,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
             ((ScoreRecord) record).getGameName()
         );
     }
-
 
     @Override
     protected String getTableCreationSQL() {
@@ -82,8 +86,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
         );
     }
 
-
-    // Create
     @Override
     protected String getInsertSQL() {
         return (
@@ -105,8 +107,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
         );
     }
 
-
-    // Update
     @Override
     protected String getUpdateSQL() {
         return (
@@ -126,8 +126,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
         );
     }
 
-
-    // Retrieve One
     @Override
     protected String getRetrieveOneSQL() {
         return (
@@ -143,8 +141,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
         );
     }
 
-
-    // Retrieve Many
     @Override
     protected String getRetrieveManySQL() {
         return (
@@ -165,8 +161,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
         );
     }
 
-
-    // Retrieve All
     @Override
     protected String getRetrieveAllSQL() {
         return (
@@ -179,8 +173,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
         );
     }
 
-
-    // Delete
     @Override
     protected String getDeleteSQL() {
         return (
@@ -191,7 +183,6 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
                 COLUMN_GAME_NAME + " = ?"
         );
     }
-
 
     @Override
     protected ScoreRecord mapResultSetToEntity(ResultSet rs) throws SQLException {

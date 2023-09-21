@@ -5,13 +5,7 @@ import java.util.stream.Collectors;
 
 
 /**
- * The GlobalLeaderboard class computes global rankings for players across all games.
- * <p>
- * The class provides methods to calculate and retrieve player rankings based on their individual game rankings.
- * Global rankings are determined by aggregating each player's rankings across all games.
- * The aggregate scores are then normalised to account for the number of games a player has played, ensuring 
- * that players are not penalised for playing more games. Players with lower normalised scores are ranked higher.
- * </p>
+ * Computes global player rankings across all games.
  */
 public class GlobalLeaderboard {
 
@@ -19,9 +13,8 @@ public class GlobalLeaderboard {
 
 
     /**
-     * Initialises a new instance of the GlobalLeaderboard class.
-     *
-     * @param storage The storage mechanism used to retrieve game scores and metadata.
+     * Constructor.
+     * @param storage Storage for game scores and metadata.
      */
     public GlobalLeaderboard(HighScoreStorage storage) {
         this.storage = storage;
@@ -29,10 +22,7 @@ public class GlobalLeaderboard {
 
 
     /**
-     * Computes and returns the global rankings for all players across all games.
-     *
-     * @return A map where the key is the player ID and the value is their global rank,
-     *         normalised for the number of games they've played.
+     * @return Global rankings of players, normalised by games played.
      */
     public Map<String, Integer> computeGlobalScores() {
         // Retrieve all scores from storage
@@ -70,11 +60,9 @@ public class GlobalLeaderboard {
 
 
     /**
-     * Computes the rankings for a specific game based on the game's scores.
-     *
-     * @param gameName Name of the game for which rankings need to be computed.
-     * @param scores A list of scores for the specific game.
-     * @return A map where the key is the player ID and the value is their rank for the given game.
+     * @param gameName Game name.
+     * @param scores Scores for the game.
+     * @return Player rankings for specified game.
      */
     private Map<String, Integer> computeRankingsForGame(String gameName, List<ScoreRecord> scores) {
         // Sort scores based on the game's criteria (lower or higher is better)
@@ -93,10 +81,8 @@ public class GlobalLeaderboard {
 
 
     /**
-     * Converts the aggregated and normalised global scores into sequential ranks (e.g., 1st, 2nd, 3rd, etc.).
-     *
-     * @param globalScores A map of player IDs to their normalised aggregated global scores.
-     * @return A map of player IDs to their global rank.
+     * @param globalScores Global scores of players.
+     * @return Global ranks derived from scores.
      */
     private Map<String, Integer> convertScoresToRanks(Map<String, Integer> globalScores) {
         // Sort players based on their global scores

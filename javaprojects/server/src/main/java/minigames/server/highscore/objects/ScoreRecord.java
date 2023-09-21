@@ -4,33 +4,20 @@ import java.util.Objects;
 
 
 /**
- * Represents a record of a player's score for a particular game.
- * 
- * This class encapsulates the details of a score achieved by a player in a specific game.
- * It includes the player's ID, the name of the game, and the score the player achieved.
- * 
- * For example, if a player named "John" achieved a score of 200 in "GameA", 
- * a ScoreRecord would represent this as:
- * 
- * playerId = "John"
- * gameName = "GameA"
- * score = 200
- * 
- * This class can be used to store, retrieve, and manipulate player score details in the high score system.
+ * Represents a player's score record for a game.
+ * Contains player's ID, game name, and achieved score.
  */
 public class ScoreRecord {
 
-    private String playerId;    // The unique identifier of the player
-    private String gameName;    // The name of the game where the score was achieved
-    private int score;          // The numeric score value achieved by the player
+    private String playerId;
+    private String gameName;
+    private int score;
 
 
     /**
-     * Constructs a ScoreRecord object with the provided player ID, game name, and score.
-     * 
-     * @param playerId The unique identifier of the player.
-     * @param gameName The name of the game where the score was achieved.
-     * @param score The numeric score value achieved by the player.
+     * @param playerId  Player's unique ID.
+     * @param gameName  Name of the game.
+     * @param score     Achieved score.
      */
     public ScoreRecord(String playerId, String gameName, int score) {
         this.playerId = playerId;
