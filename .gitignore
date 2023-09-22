@@ -8,8 +8,9 @@
 # Derby database binary files
 derbyDatabase/
 testDb_temporary/
-.dat
-.ctrl
+seg0/
+*.dat
+*.ctrl
 
 # Gradle generated files
 .gradle/
