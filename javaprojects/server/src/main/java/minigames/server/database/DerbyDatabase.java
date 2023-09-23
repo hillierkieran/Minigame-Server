@@ -73,7 +73,7 @@ public class DerbyDatabase extends Database {
 // Getters
 
     public boolean isDisconnected() { return dataSource == null || dataSource.isClosed(); }
-    public boolean isReady() { return !isDisconnected() && !isClosed(); }
+    public boolean isReady() { return !isClosed() && !isDisconnected(); }
     String getDefaultPropFileName() { return DEFAULT_PROP_FILE_NAME; }
     HikariDataSource getDataSource() { return dataSource; }
 
@@ -120,7 +120,7 @@ public class DerbyDatabase extends Database {
 
     /**
      * Closes the Derby database.
-     * 
+     *
      * @throws SQLException on error.
      */
     @Override
@@ -158,7 +158,7 @@ public class DerbyDatabase extends Database {
 
     /**
      * Initialises the connection pool using a properties file.
-     * 
+     *
      * @throws SQLException on error.
      */
     private void initialiseConnectionPool() throws SQLException {
@@ -201,7 +201,7 @@ public class DerbyDatabase extends Database {
 
     /**
      * Shuts down the database, disconnects pool and backs up tables.
-     * 
+     *
      * @throws DatabaseShutdownException on error.
      */
     public synchronized void shutdown() throws DatabaseShutdownException {
@@ -210,7 +210,7 @@ public class DerbyDatabase extends Database {
         for (DatabaseTable<?> table : registeredTables) {
             try {
                 table.backup();
-            } catch (IOException e) {
+            } catch (DatabaseException e) {
                 logger.error(
                     "Failed to backup database table " + table.getTableName(), e);
             }
@@ -243,11 +243,11 @@ public class DerbyDatabase extends Database {
 
     /**
      * Shuts down the whole Derby system completely.
-     * 
+     *
      * @throws DatabaseShutdownException on error.
      */
     public synchronized void shutdownDerbySystem() throws DatabaseShutdownException {
-        shutdown(); // Contains instance-specific resource shutdown handling 
+        shutdown(); // Contains instance-specific resource shutdown handling
         try {
             DriverManager.getConnection("jdbc:derby:;shutdown=true"); // whole Derby system
         } catch (SQLException se) {

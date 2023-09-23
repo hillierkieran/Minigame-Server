@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Default CRUD operations for database tables.
- * 
+ *
  * @param <T> Type of records managed by the table
  * @author Kieran Hillier (Group: Merge Mavericks)
  */
@@ -146,11 +146,29 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
     synchronized boolean tableExists(String tableName) {
         try(Connection connection = database.getConnection();
             ResultSet resultSet = connection.getMetaData().getTables(
-                null, null, tableName.toUpperCase(), new String[]{"TABLE"})) {
+                null, null, tableName, new String[]{"TABLE"})) {
             return resultSet.next();
         } catch (SQLException e) {
             throw new DatabaseAccessException("Error", e);
         }
+    }
+
+    /**
+     * Counts the number of records in the table.
+     *
+     * @return The number of records in the table, or;
+     *         -1 if the table does not exist.
+     */
+    public synchronized int getTableSize() {
+        return getTableSize(tableName);
+    }
+    synchronized int getTableSize(String tableName) {
+        if (!tableExists(tableName)) return -1;
+        String sql = "SELECT COUNT(*) FROM " + tableName;
+        List<Integer> results = executeQuery(sql, null, rs -> rs.getInt(1));
+        logger.info("getTableSize result: " + (
+            results.isEmpty() ? "null" : results.get(0)));
+        return results.isEmpty() ? 0 : results.get(0);
     }
 
 
@@ -159,15 +177,15 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
     /**
      * Backs up the table to the default directory.
      *
-     * @throws IOException If backup fails.
+     * @throws DatabaseAccessException If backup fails.
      */
-    public synchronized void backup() throws IOException {
+    public synchronized void backup() throws DatabaseAccessException {
         backup(new File(BACKUP_DIR));
     }
-    synchronized void backup(File dir) throws IOException {
+    synchronized void backup(File dir) throws DatabaseAccessException {
         if (tableExists()) {
             if (!dir.exists() && !dir.mkdirs())
-                throw new IOException("Unable to create backup directory.");
+                throw new DatabaseAccessException("Unable to create backup directory.");
             String tempfilePath = filePath.replace(".sql", "_temp.sql");
             execute(getBackupCommand(tableName, tempfilePath)); // backup to temp file
             new File(filePath).delete(); // delete prev backup file
@@ -185,11 +203,21 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
         restore(tableName, file);
     }
     synchronized void restore(String tableName, File file) {
-        if (file.exists()) {
-            if (tableExists()) clearTable();
-            else createTable();
+        if (file.exists() && file.length() > 0) {
+            createTable();
+            clearTable();
             execute(getRestoreCommand(tableName, BACKUP_DIR + file.getName()));
         }
+    }
+
+    /**
+     * Delete the backup.
+     */
+    public synchronized void deleteBackup() {
+        deleteBackup(new File(filePath));
+    }
+    synchronized void deleteBackup(File file) {
+        if (file.exists()) file.delete();
     }
 
 
@@ -328,7 +356,13 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
                 if (database.isTest())
                     logger.info("Executing SQL: " + logSQL.toString());
                 try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) results.add(mapper.map(rs));
+                int rowCount = 0;
+                    while (rs.next()) {
+                        rowCount++;
+                        results.add(mapper.map(rs));
+                    }
+                    if (database.isTest())
+                        logger.info("SQL Query returned {} rows", rowCount);
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -367,7 +401,7 @@ public abstract class DatabaseTable<T> implements DatabaseCRUDOperations<T> {
                     connection.close();
                 } catch (SQLException closeEx) {
                     logger.error("Error closing connection after transaction", closeEx);
-                    throw new DatabaseAccessException("Error closing connection after transaction", closeEx);
+                    //throw new DatabaseAccessException("Error closing connection after transaction", closeEx);
                 }
             }
         }

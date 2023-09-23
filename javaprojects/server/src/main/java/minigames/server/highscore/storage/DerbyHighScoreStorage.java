@@ -30,8 +30,8 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
             );
         }
         this.database = database;
-        gameTable = new GameTable(this.database);
-        scoreTable = new ScoreTable(this.database, gameTable);
+        this.gameTable = new GameTable(this.database);
+        this.scoreTable = new ScoreTable(this.database, this.gameTable);
     }
 
 
@@ -48,7 +48,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Inserts or updates a given game.
-     * 
+     *
      * @param gameName Game name.
      * @param isLowerBetter Game's score ordering preference.
      */
@@ -66,7 +66,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Checks if a given game exists in the database.
-     * 
+     *
      * @param gameName Game name.
      * @return True if exists, false otherwise.
      */
@@ -78,7 +78,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Inserts or updates a given score.
-     * 
+     *
      * @param playerId Player ID.
      * @param gameName Game name.
      * @param score Score value.
@@ -97,7 +97,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Retrieves all the high scores for a given game.
-     * 
+     *
      * @param gameName Game name.
      * @return List of top scores.
      */
@@ -109,7 +109,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Retrieves the best score for player in a game.
-     * 
+     *
      * @param playerId Player ID.
      * @param gameName Game name.
      * @return Best score.
@@ -122,7 +122,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Retrieves all scores for all games.
-     * 
+     *
      * @return All scores.
      */
     @Override
@@ -133,7 +133,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Retrieves a game's metadata record.
-     * 
+     *
      * @param gameName Game name.
      * @return Game metadata record.
      */
@@ -145,7 +145,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Deletes a score record.
-     * 
+     *
      * @param playerId Player ID.
      * @param gameName Game name.
      */
@@ -157,11 +157,25 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
 
     /**
      * Deletes a game and its scores.
-     * 
+     *
      * @param gameName Game name.
      */
     @Override
     public void deleteGame(String gameName) {
         gameTable.delete(new GameRecord(gameName, false));
+    }
+
+
+    /** Backup game metadata. */
+    @Override
+    public void backupGame() {
+        gameTable.backup();
+    }
+
+
+    /** Backup scores. */
+    @Override
+    public void backupScores() {
+        scoreTable.backup();
     }
 }

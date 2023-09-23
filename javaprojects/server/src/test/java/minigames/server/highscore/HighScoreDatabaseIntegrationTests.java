@@ -3,8 +3,6 @@ package minigames.server.highscore;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import minigames.server.database.DerbyDatabase;
-
 public class HighScoreDatabaseIntegrationTests {
 
     private static final String TEST_ENV = "testEnv";
@@ -12,7 +10,6 @@ public class HighScoreDatabaseIntegrationTests {
     private static final String TEST_PLAYER_ID = "TestPlayer";
     private static final int    TEST_SCORE = 100;
 
-    private DerbyDatabase database;
     private HighScoreAPI api;
 
 
@@ -23,19 +20,15 @@ public class HighScoreDatabaseIntegrationTests {
 
     @BeforeEach
     public void setup() {
-        database = DerbyDatabase.getInstance();
-        api = new HighScoreAPI(database);
-        api.deleteGame(TEST_GAME_NAME);
-        api.registerGame(TEST_GAME_NAME, false);
+        api = new HighScoreAPI();
+        api.deleteGame(TEST_GAME_NAME); // drop table
+        api.registerGame(TEST_GAME_NAME, false); // create table
     }
 
     @AfterEach
-    public void tearDown() {
-        if (database == null)
-            database = DerbyDatabase.getInstance();
-        else if (!database.isReady())
-            database.initialise();
-        api.deleteGame(TEST_GAME_NAME);
+    public void teardown() {
+        if (api == null) api = new HighScoreAPI();
+        api.deleteGame(TEST_GAME_NAME); // drop table
     }
 
     @AfterAll
@@ -59,7 +52,7 @@ public class HighScoreDatabaseIntegrationTests {
     public void testRecordScore() {
         assertNull(api.getPersonalBest(TEST_PLAYER_ID, TEST_GAME_NAME));
         api.recordScore(TEST_PLAYER_ID, TEST_GAME_NAME, TEST_SCORE);
-        assertEquals(TEST_SCORE, 
+        assertEquals(TEST_SCORE,
             api.getPersonalBest(TEST_PLAYER_ID, TEST_GAME_NAME).getScore());
     }
     @Test

@@ -43,4 +43,12 @@ public interface HighScoreStorage {
 
     /** Deletes a game and all associated scores. */
     void deleteGame(String gameName);
+
+
+    /** Backup game metadata. */
+    void backupGame();
+
+
+    /** Backup scores. */
+    void backupScores();
 }

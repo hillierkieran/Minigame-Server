@@ -20,7 +20,7 @@ import minigames.server.utilities.Utilities;
 /**
  * Integration tests for DerbyDatabase operations.
  * Validates database CRUD operations, connectivity, concurrency, and cleanup.
- * 
+ *
  * @author Kieran Hillier (Group: Merge Mavericks)
  */
 public class DerbyDatabaseIntegrationTests {
@@ -48,6 +48,7 @@ public class DerbyDatabaseIntegrationTests {
     public void setup() {
         testDatabase = new DerbyDatabase(TEST_DB_PROPERTIES);
         testTable = new ExampleTable(testDatabase, TEST_TABLE_NAME);
+        testTable.deleteBackup();
         testTable.createTable();
         testTable.clearTable();
     }
@@ -81,8 +82,8 @@ public class DerbyDatabaseIntegrationTests {
     // Remove any/all test database files and directories
     private static void deleteTestDatabaseFiles() {
         int retries = 10;
-        /* 
-         * WARNING! Editing the following logic could be dangerous. 
+        /*
+         * WARNING! Editing the following logic could be dangerous.
          */
         // Step 1: Check our custom system property to ensure we're in a test environment
         if (!"true".equals(System.getProperty(TEST_ENV))) {
@@ -100,7 +101,7 @@ public class DerbyDatabaseIntegrationTests {
         if (Files.exists(testDbPath)) {
             logger.debug("Found test database directory: " + testDbPath + ". Preparing to delete.");
             try {
-                // Step 5: Delete all nested files and directories in reverse order 
+                // Step 5: Delete all nested files and directories in reverse order
                 // to ensure that directories are empty before they get deleted
                 Files.walk(testDbPath)
                     .sorted(Comparator.reverseOrder())
@@ -155,7 +156,7 @@ public class DerbyDatabaseIntegrationTests {
 
     @Test
     public void testMissingPropertiesFile() {
-        Exception exception = assertThrows(Exception.class, 
+        Exception exception = assertThrows(Exception.class,
             () -> new DerbyDatabase("missing.properties"));
         if (exception.getCause() != null) {
             assertTrue(exception.getCause() instanceof RuntimeException);
@@ -197,7 +198,7 @@ public class DerbyDatabaseIntegrationTests {
         }
         // Clean up - close all fetched connections
         connections.forEach(conn -> {
-            try { conn.close(); } 
+            try { conn.close(); }
             catch (SQLException e) {
                 logger.error("Error while closing connection", e);
             }

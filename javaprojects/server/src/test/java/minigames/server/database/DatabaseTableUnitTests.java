@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for DatabaseTable operations.
  * Validates table creation, data CRUD operations, and backups.
- * 
+ *
  * @author Kieran Hillier (Group: Merge Mavericks)
  */
 public class DatabaseTableUnitTests {
@@ -41,8 +41,6 @@ public class DatabaseTableUnitTests {
     private ResultSet mockResultSet;
     @Mock
     private File mockFile;
-    @Mock
-    private File mockDir;
 
     private ExampleTable testTable;
 
@@ -55,41 +53,41 @@ public class DatabaseTableUnitTests {
     @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
+        when(mockDatabase.isTest()).thenReturn(true);
         when(mockDatabase.getConnection()).thenReturn(mockConnection);
         mockBackupExists(false); // default: no backup file
+        mockQueryResults(1);     // default: return one result
         mockTableExists(true);   // default: table exists
-        mockQueryResults(1);     // default: one result found
         testTable = new ExampleTable(mockDatabase, TEST_TABLE_NAME);
+        mockTableExists(true);   // reset
     }
 
     private void mockBackupExists(boolean exists) throws Exception {
         when(mockFile.exists()).thenReturn(exists);
-        when(mockFile.getParentFile()).thenReturn(mockDir);
-        when(mockDir.listFiles()).thenReturn(new File[]{mockFile});
-        when(mockFile.getName()).thenReturn(TEST_TABLE_NAME + ".sql");
+        when(mockFile.length()).thenReturn((long)1);
         when(mockFile.mkdirs()).thenReturn(true);
     }
 
     private void mockTableExists(boolean exists) throws Exception {
         when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
-        when(mockDatabaseMetaData.getTables(any(),any(),any(),any())).thenReturn(mockResultSet);
-        when(mockResultSet.next()).thenReturn(exists);
+        when(mockDatabaseMetaData.getTables(any(),any(),anyString(),any())).thenReturn(mockResultSet);
+        when(mockResultSet.next()).thenReturn(exists, false);
     }
 
     private void mockQueryResults(int i) throws Exception {
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockStatement);
         when(mockStatement.executeQuery()).thenReturn(mockResultSet);
         when(mockResultSet.getString(anyString())).thenReturn("test");
-        when(mockResultSet.getInt(anyString())).thenReturn(1);
+        when(mockResultSet.getInt(any())).thenReturn(1);
         switch (i) {
             case 0:
-                when(mockResultSet.next()).thenReturn(true, false); 
+                when(mockResultSet.next()).thenReturn(true, false);
                 break;
             case 1:
-                when(mockResultSet.next()).thenReturn(true, true, false); 
+                when(mockResultSet.next()).thenReturn(true, true, false);
                 break;
             case 2:
-                when(mockResultSet.next()).thenReturn(true, true, true, false); 
+                when(mockResultSet.next()).thenReturn(true, true, true, false);
                 break;
             case 10:
                 when(mockResultSet.next()).thenReturn(
@@ -158,10 +156,38 @@ public class DatabaseTableUnitTests {
 
 
     @Test
+    public void testGetTableSize_WhenNoTable() throws Exception {
+        mockTableExists(false);
+        assertEquals(-1, testTable.getTableSize());
+        verify(mockConnection, never()).prepareStatement(contains("SELECT COUNT(*) FROM "));
+    }
+
+
+    @Test
+    public void testGetTableSize_WhenEmptyTable() throws Exception {
+        when(mockResultSet.next()).thenReturn(true, true, false);
+        when(mockResultSet.getInt(any())).thenReturn(0);
+        assertEquals(0, testTable.getTableSize());
+        verify(mockConnection).prepareStatement(contains("SELECT COUNT(*) FROM "));
+    }
+
+
+    @Test
+    public void testGetTableSize_WhenTableHasRecords() throws Exception {
+        when(mockResultSet.next()).thenReturn(true, true, true, false);
+        when(mockResultSet.getInt(1)).thenReturn(1);
+        assertEquals(1, testTable.getTableSize());
+        verify(mockConnection).prepareStatement(contains("SELECT COUNT(*) FROM "));
+    }
+
+
+    @Test
     public void testBackup() throws Exception {
-        mockTableExists(true);
         mockBackupExists(false);
+        when(mockResultSet.next()).thenReturn(true, true, true, false);
+        when(mockResultSet.getInt(1)).thenReturn(1);
         testTable.backup(mockFile);
+        verify(mockFile).exists();
         verify(mockFile).mkdirs();
         verify(mockConnection).prepareStatement(contains("SYSCS_EXPORT_TABLE"));
     }

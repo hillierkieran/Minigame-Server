@@ -23,6 +23,7 @@ class HighScoreManager {
 
     void registerGame(String gameName, Boolean isLowerBetter) {
         storage.registerGame(gameName, isLowerBetter);
+        storage.backupGame();
     }
 
 
@@ -33,7 +34,7 @@ class HighScoreManager {
 
     /**
      * Records a new high score if better than previous.
-     * 
+     *
      * @param playerId Player's ID.
      * @param gameName Game's name.
      * @param newScore New score achieved.
@@ -43,17 +44,16 @@ class HighScoreManager {
         if (game == null)
             throw new HighScoreException("Game metadata not found for game: " + gameName);
         ScoreRecord previousBest = storage.getScore(playerId, gameName);
-        if (previousBest == null) {
-            storage.storeScore(playerId, gameName, newScore);
-            return;
-        }
         boolean shouldRecord;
-        if (game.isLowerBetter())
+        if (previousBest == null)
+            shouldRecord = true;
+        else if (game.isLowerBetter())
             shouldRecord = newScore < previousBest.getScore();
         else
             shouldRecord = newScore > previousBest.getScore();
         if (shouldRecord)
             storage.storeScore(playerId, gameName, newScore);
+        storage.backupScores();
     }
 
 
@@ -120,21 +120,24 @@ class HighScoreManager {
 
     /**
      * Deletes specific score.
-     * 
+     *
      * @param playerId Player's ID.
      * @param gameName Game's name.
      */
     public void deleteScore(String playerId, String gameName) {
         storage.deleteScore(playerId, gameName);
+        storage.backupScores();
     }
 
 
     /**
      * Deletes game and associated scores.
-     * 
+     *
      * @param gameName Game's name.
      */
     public void deleteGame(String gameName) {
         storage.deleteGame(gameName);
+        storage.backupGame();
+        storage.backupScores();
     }
 }

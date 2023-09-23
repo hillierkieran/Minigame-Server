@@ -76,11 +76,11 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
                         gameTable.getColumnGameName() +
                     ") " +
                     // If a game is deleted, so will it's scores
-                    "ON DELETE CASCADE, " + 
+                    "ON DELETE CASCADE, " +
                 COLUMN_SCORE + " INT, " +
                 "PRIMARY KEY (" +
                     COLUMN_PLAYER_ID + ", " +
-                    COLUMN_GAME_NAME + 
+                    COLUMN_GAME_NAME +
                 ")" +
             ")"
         );
@@ -89,9 +89,9 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
     @Override
     protected String getInsertSQL() {
         return (
-            "INSERT INTO " + 
+            "INSERT INTO " +
                 TABLE_NAME +
-            " (" + 
+            " (" +
                 COLUMN_PLAYER_ID + ", " +
                 COLUMN_GAME_NAME + ", " +
                 COLUMN_SCORE +
@@ -129,11 +129,11 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
     @Override
     protected String getRetrieveOneSQL() {
         return (
-            "SELECT " + 
+            "SELECT " +
                 COLUMN_PLAYER_ID + ", " +
                 COLUMN_GAME_NAME + ", " +
                 COLUMN_SCORE +
-            " FROM " + 
+            " FROM " +
                 TABLE_NAME +
             " WHERE " +
                 COLUMN_PLAYER_ID + " = ? AND " +
@@ -148,9 +148,9 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
                 COLUMN_PLAYER_ID + ", " +
                 COLUMN_GAME_NAME + ", " +
                 COLUMN_SCORE +
-            " FROM " + 
+            " FROM " +
                 TABLE_NAME +
-            " WHERE " + 
+            " WHERE " +
                 COLUMN_GAME_NAME + " = ?"
         );
     }
@@ -176,7 +176,7 @@ public class ScoreTable extends DatabaseTable<ScoreRecord> {
     @Override
     protected String getDeleteSQL() {
         return (
-            "DELETE FROM " + 
+            "DELETE FROM " +
                 TABLE_NAME +
             " WHERE " +
                 COLUMN_PLAYER_ID + " = ? AND " +
