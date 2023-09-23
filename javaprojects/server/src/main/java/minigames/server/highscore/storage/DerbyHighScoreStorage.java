@@ -31,7 +31,7 @@ public class DerbyHighScoreStorage implements HighScoreStorage {
         }
         this.database = database;
         this.gameTable = new GameTable(this.database);
-        this.scoreTable = new ScoreTable(this.database, this.gameTable);
+        this.scoreTable = new ScoreTable(this.database);
     }
 
 

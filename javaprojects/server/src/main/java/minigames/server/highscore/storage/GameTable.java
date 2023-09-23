@@ -14,9 +14,9 @@ import minigames.server.database.*;
  */
 public class GameTable extends DatabaseTable<GameRecord> {
 
-    private static final String TABLE_NAME = "high_score_game_metadata";
-    private static final String COLUMN_GAME_NAME = "game_name";
-    private static final String COLUMN_IS_LOWER_BETTER = "is_lower_better";
+    public static final String TABLE_NAME = "HIGH_SCORE_GAME_METADATA";
+    public static final String COLUMN_GAME_NAME = "game_name";
+    public static final String COLUMN_IS_LOWER_BETTER = "is_lower_better";
 
 
     /**
@@ -72,9 +72,9 @@ public class GameTable extends DatabaseTable<GameRecord> {
         return (
             "INSERT INTO " +
                 TABLE_NAME +
-            " (" + 
-                COLUMN_GAME_NAME + ", " + 
-                COLUMN_IS_LOWER_BETTER + 
+            " (" +
+                COLUMN_GAME_NAME + ", " +
+                COLUMN_IS_LOWER_BETTER +
             ") VALUES (?, ?)"
         );
     }
