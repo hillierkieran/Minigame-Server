@@ -1,9 +1,13 @@
 package minigames.server.database;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
@@ -54,6 +58,8 @@ public class DerbyDatabase extends Database {
      */
     DerbyDatabase(String propFileName) {
         super(propFileName);
+        retrieveDatabaseName();
+        deleteBinaryDatabaseFiles();
         initialise();
     }
 
@@ -157,6 +163,14 @@ public class DerbyDatabase extends Database {
     }
 
     /**
+     * Retrieve the database's name using a properties file.
+     */
+    private void retrieveDatabaseName(){
+        Properties properties = Utilities.getProperties(propFileName);
+        databaseName = properties.getProperty("db.jdbcUrl").split(":")[2].split(";")[0];
+    }
+
+    /**
      * Initialises the connection pool using a properties file.
      *
      * @throws SQLException on error.
@@ -164,8 +178,6 @@ public class DerbyDatabase extends Database {
     private void initialiseConnectionPool() throws SQLException {
         Properties properties = Utilities.getProperties(propFileName);
         HikariConfig config = new HikariConfig();
-        // Get the this database's name for later use
-        databaseName = properties.getProperty("db.jdbcUrl").split(":")[2].split(";")[0];
         // Set connection pool parameters from properties file
         config.setJdbcUrl(properties.getProperty("db.jdbcUrl"));
         config.setDriverClassName(properties.getProperty("db.driverClass"));
@@ -254,6 +266,51 @@ public class DerbyDatabase extends Database {
             if (!se.getSQLState().equals("XJ015")) {
                 throw new DatabaseShutdownException(
                     "The Derby system failed to shut down gracefully.", se);
+            }
+        }
+    }
+
+
+// File deletion functions
+// WARNING! Editing the following logic could be dangerous.
+
+    // Remove binary database files and directories
+    private void deleteBinaryDatabaseFiles() {
+        if (databaseName == null) return;
+        int retries = 10;
+        // Derive the full path for the database directory
+        Path databasePath = Paths.get(System.getProperty("user.dir"), databaseName);
+        // Double-check that we are about to delete the correct directory
+        if (!databasePath.endsWith(databaseName)) {
+            logger.error("Trying to delete an unexpected directory! Cleanup aborted.");
+            return;
+        }
+        // Check if the directory exists from a previous and attempt deletion
+        if (Files.exists(databasePath)) {
+            logger.info("Found database directory: " + databasePath + ". Preparing to delete.");
+            try {
+                // Delete all nested files and directories in reverse order
+                // to ensure that directories are empty before they get deleted
+                Files.walk(databasePath)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(file -> {
+                        logger.debug("Deleting file or directory: " + file.getPath());
+                        file.delete();
+                    });
+                // Add a check to make sure the directory is indeed deleted
+                while(retries > 0 && Files.exists(databasePath)) {
+                    Thread.sleep(1000); // wait for 500ms
+                    retries--;
+                }
+                if(Files.exists(databasePath)) {
+                    logger.error("Unable to delete the database directory after multiple retries.");
+                }
+            } catch (IOException e) {
+                logger.error("I/O Error during deletion: ", e);
+            } catch (InterruptedException ie) {
+                logger.error("Interrupted during wait: ", ie);
+                Thread.currentThread().interrupt(); // Handle the interrupt
             }
         }
     }
