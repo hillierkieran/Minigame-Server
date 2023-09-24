@@ -19,11 +19,11 @@ import minigames.server.database.DerbyDatabase;
  *     HighScoreAPI highscore = new HighScoreAPI();
  *     highscore.registerGame("GameName", true);  // For games where lower score is better
  *     highscore.recordScore("playerName", "GameName", 9001);
- *     List<ScoreRecord> topScores = highscore.getHighScores("GameName");
- *     // or
  *     List<ScoreRecord> highScores = highscore.getHighScores("GameName");
+ *     // or
+ *     String highScores = highscore.getHighScoresToString("GameName");
  * </pre>
- * 
+ *
  * @author Kieran Hillier (Group: Merge Mavericks)
  */
 public class HighScoreAPI {
@@ -62,7 +62,7 @@ public class HighScoreAPI {
 
 // Game registration
 
-    /** 
+    /**
      * @param gameName Game identifier.
      * @param isLowerBetter True if lower scores are better for this game.
      */
@@ -70,7 +70,7 @@ public class HighScoreAPI {
         manager.registerGame(gameName, isLowerBetter);
     }
 
-    /** 
+    /**
      * @param gameName Game identifier.
      * @return True if the game is already registered.
      */
@@ -78,7 +78,7 @@ public class HighScoreAPI {
         return manager.isGameRegistered(gameName);
     }
 
-    /** 
+    /**
      * @param gameName Game identifier.
      */
     public void deleteGame(String gameName) {
@@ -88,7 +88,7 @@ public class HighScoreAPI {
 
 // Record scores
 
-    /** 
+    /**
      * Records a player's score for a game.
      * @param playerId Player identifier.
      * @param gameName Game identifier.
@@ -103,7 +103,7 @@ public class HighScoreAPI {
         }
     }
 
-    /** 
+    /**
      * @param playerId Player identifier.
      * @param gameName Game identifier.
      */
@@ -114,7 +114,7 @@ public class HighScoreAPI {
 
 // Get scores for a game
 
-    /** 
+    /**
      * @param playerId Player identifier.
      * @param gameName Game identifier.
      * @return Player's best score for the game.
@@ -128,7 +128,7 @@ public class HighScoreAPI {
         }
     }
 
-    /** 
+    /**
      * @param gameName Game identifier.
      * @return Top scores for the game.
      */
@@ -141,7 +141,7 @@ public class HighScoreAPI {
         }
     }
 
-    /** 
+    /**
      * @param gameName Game identifier.
      * @return String representation of top scores for the game.
      */
@@ -157,7 +157,7 @@ public class HighScoreAPI {
 
 // Get global rankings
 
-    /** 
+    /**
      * @return Players' rankings across all games.
      */
     public Map<String, Integer> getGlobalLeaderboard() {
